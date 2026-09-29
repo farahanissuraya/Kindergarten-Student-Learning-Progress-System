@@ -1,0 +1,208 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.topbar-header {
+    height: 70px;
+    background-color: #FFFFFF;
+    border-bottom: 2px solid #2B2D42;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Left Side Layout */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.platform-badge {
+    background-color: #FF758F;
+    color: #1A202C;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 2px solid #2B2D42;
+    box-shadow: 2px 2px 0px #2B2D42;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+}
+
+.heart-icon {
+    width: 14px;
+    height: 14px;
+    stroke: #1A202C;
+}
+
+.platform-subtitle {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #718096;
+}
+
+/* Right Side Layout */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Loceng Pemberitahuan */
+.icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: #FFFFFF;
+    border: 2px solid #2B2D42;
+    box-shadow: 2px 2px 0px #2B2D42;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.icon-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px #2B2D42;
+}
+
+.bell-icon {
+    width: 20px;
+    height: 20px;
+    stroke: #2B2D42;
+}
+
+.notification-dot {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 9px;
+    height: 9px;
+    background-color: #FF8585;
+    border-radius: 50%;
+}
+
+/* User Avatar */
+.profile-dropdown-container {
+    position: relative;
+}
+
+.avatar-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: #FF758F;
+    color: #1A202C;
+    font-weight: 800;
+    font-size: 0.875rem;
+    border: 2px solid #2B2D42;
+    box-shadow: 2px 2px 0px #2B2D42;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.avatar-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px #2B2D42;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 52px;
+    width: 200px;
+    background-color: #FFFFFF;
+    border: 2px solid #2B2D42;
+    border-radius: 16px;
+    box-shadow: 4px 4px 0px #2B2D42;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: all 0.2s ease;
+    overflow: hidden;
+    z-index: 1050;
+}
+
+.profile-dropdown-container:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-header {
+    padding: 12px 16px;
+    background-color: #F7FAFC;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.user-name {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #2D3748;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-role {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #FF758F;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.dropdown-body {
+    padding: 6px 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #4A5568;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.dropdown-item svg {
+    width: 16px;
+    height: 16px;
+}
+
+.dropdown-item:hover {
+    background-color: #EDF2F7;
+    color: #1A202C;
+}
+
+.logout-item {
+    color: #E53E3E;
+    border-top: 1px solid #EDF2F7;
+}
+
+.logout-item:hover {
+    background-color: #FFF5F5;
+    color: #C53030;
+}

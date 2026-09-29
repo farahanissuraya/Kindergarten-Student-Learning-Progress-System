@@ -119,6 +119,7 @@
             padding: 10px 14px;
             border-radius: 12px;
             margin-bottom: 16px;
+            text-align: center;
         }
 
         .alert-success {
@@ -130,6 +131,7 @@
             padding: 10px 14px;
             border-radius: 12px;
             margin-bottom: 16px;
+            text-align: center;
         }
 
         /* Butang */
@@ -175,11 +177,6 @@
         .link-btn:hover {
             color: #000000;
             text-decoration: underline;
-        }
-
-        .toggle-auth {
-            text-align: center;
-            margin-top: 6px;
         }
 
         /* Modal Reset Kata Laluan */
@@ -261,15 +258,20 @@
     <div class="card">
         <h1 class="title">Keedflix Centre</h1>
 
-        <%-- Paparan Mesej Ralat / Kejayaan daripada Servlet --%>
+        <%-- Paparan Mesej Ralat daripada URL Parameter (login.jsp?error=...) atau Request Attribute --%>
         <% 
+            String error = request.getParameter("error");
             String errorMessage = (String) request.getAttribute("errorMessage");
             String successMessage = (String) request.getAttribute("successMessage");
-            if (errorMessage != null) { 
+
+            if (error != null && !error.isBlank()) { 
         %>
+            <div class="alert-error"><%= error %></div>
+        <% } else if (errorMessage != null && !errorMessage.isBlank()) { %>
             <div class="alert-error"><%= errorMessage %></div>
         <% } %>
-        <% if (successMessage != null) { %>
+
+        <% if (successMessage != null && !successMessage.isBlank()) { %>
             <div class="alert-success"><%= successMessage %></div>
         <% } %>
 
@@ -303,7 +305,7 @@
                 <!-- Kata Laluan -->
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" value="••••••••" required class="form-input" placeholder="Enter your password">
+                    <input type="password" id="password" name="password" value="" required class="form-input" placeholder="Enter your password">
                 </div>
 
                 <div class="btn-container">
@@ -314,73 +316,7 @@
                     <button type="button" class="link-btn" onclick="openForgotPasswordModal()">Forget Password</button>
                 </div>
             </form>
-
-            <div class="toggle-auth">
-                <button type="button" class="link-btn" onclick="toggleAuthMode('register')">Don't have an account? Register</button>
-            </div>
         </div>
-
-        <%-- FORM PENDAFTARAN --%>
-        <div id="registerFormContainer" style="display: none;">
-            <form action="LoginServlet" method="POST">
-                <input type="hidden" name="action" value="register">
-
-                <div style="text-align: center; margin-top: -8px; margin-bottom: 12px;">
-                    <span style="font-size: 0.75rem; font-weight: 600; color: #525252; text-transform: uppercase;">
-                        Create Account
-                    </span>
-                </div>
-
-                <!-- Pilihan Peranan bagi Pendaftaran -->
-                <div class="role-selector">
-                    <label class="role-option">
-                        <input type="radio" name="role" value="Parent" checked>
-                        Parent
-                    </label>
-                    <label class="role-option">
-                        <input type="radio" name="role" value="Teacher">
-                        Teacher
-                    </label>
-                    <label class="role-option">
-                        <input type="radio" name="role" value="Admin">
-                        Admin
-                    </label>
-                </div>
-
-                <!-- Nama Penuh -->
-                <div class="form-group">
-                    <label for="regName">Full Name *</label>
-                    <input type="text" id="regName" name="regName" required class="form-input" placeholder="e.g. Ms. Clara Davis">
-                </div>
-
-                <!-- Email -->
-                <div class="form-group">
-                    <label for="regEmail">Email Address *</label>
-                    <input type="email" id="regEmail" name="regEmail" required class="form-input" placeholder="e.g. new.educator@keedflix.edu">
-                </div>
-
-                <!-- Nombor Telefon -->
-                <div class="form-group">
-                    <label for="regPhone">Phone Number</label>
-                    <input type="tel" id="regPhone" name="regPhone" class="form-input" placeholder="e.g. +1 (555) 019-2834">
-                </div>
-
-                <!-- Kata Laluan -->
-                <div class="form-group">
-                    <label for="regPassword">Password *</label>
-                    <input type="password" id="regPassword" name="regPassword" required class="form-input" placeholder="Create a secure password">
-                </div>
-
-                <div class="btn-container">
-                    <button type="submit" class="btn-submit" style="width: 200px;">Register Account</button>
-                </div>
-            </form>
-
-            <div class="toggle-auth">
-                <button type="button" class="link-btn" onclick="toggleAuthMode('login')">Already have an account? Sign in</button>
-            </div>
-        </div>
-
     </div>
 
     <%-- MODAL FORGOT PASSWORD --%>
@@ -412,19 +348,6 @@
     </div>
 
     <script>
-        // Tukar mod antara Log Masuk dan Pendaftaran
-        function toggleAuthMode(mode) {
-            const loginForm = document.getElementById('loginFormContainer');
-            const registerForm = document.getElementById('registerFormContainer');
-            if (mode === 'register') {
-                loginForm.style.display = 'none';
-                registerForm.style.display = 'block';
-            } else {
-                loginForm.style.display = 'block';
-                registerForm.style.display = 'none';
-            }
-        }
-
         // Kemaskini cadangan e-mel berdasarkan peranan yang dipilih
         function updateDefaultEmail(role) {
             const emailInput = document.getElementById('email');

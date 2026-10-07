@@ -105,4 +105,9 @@ public class ParentDAO {
         }
         return false;
     }
+
+	public int getParentCount() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

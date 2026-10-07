@@ -83,4 +83,9 @@ public class NewsDAO {
         }
         return false;
     }
+
+	public int getNewsCount() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

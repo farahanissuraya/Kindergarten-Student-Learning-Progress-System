@@ -1,6 +1,12 @@
 package bean;
 
 import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import util.DatabaseConnection;
 
 public class Teacher implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -62,4 +68,22 @@ public class Teacher implements Serializable {
     public void setAdminID(Integer adminID) {
         this.adminID = adminID;
     }
+    
+    public int getTeacherCount() throws ClassNotFoundException {
+        int count = 0;
+        String sql = "SELECT COUNT(*) FROM teacher"; // Sesuaikan nama jadual anda
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
+    
 }

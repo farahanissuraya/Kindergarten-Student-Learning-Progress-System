@@ -120,4 +120,9 @@ public class TeacherDAO {
         }
         return false;
     }
+
+	public int getTeacherCount() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

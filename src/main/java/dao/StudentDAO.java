@@ -116,4 +116,9 @@ public class StudentDAO {
         }
         return false;
     }
+
+	public int getStudentCount() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

@@ -6,7 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import util.DatabaseConnection; // Pastikan package pencapaian pangkalan data anda betul
+import util.DatabaseConnection;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -28,30 +28,29 @@ public class LoginServlet extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        if (email == null || password == null || email.isBlank() || password.isBlank()) {
-            response.sendRedirect("login.jsp?error=" + url("Sila masukkan e-mel dan kata laluan."));
+        if (role == null || role.isBlank()) role = "Parent";
+        if (email == null) email = "";
+
+        if (email.isBlank() || password == null || password.isBlank()) {
+            redirectWithError(response, "Sila masukkan e-mel dan kata laluan.", role, email);
             return;
         }
 
-        // Semak log masuk mengikut peranan pengguna
         if ("Parent".equalsIgnoreCase(role)) {
             try {
-				authenticateParent(request, response, email, password);
-			} catch (ClassNotFoundException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+                authenticateParent(request, response, email, password);
+            } catch (ClassNotFoundException | IOException e) {
+                e.printStackTrace();
+            }
         } else if ("Teacher".equalsIgnoreCase(role) || "Admin".equalsIgnoreCase(role)) {
             try {
-				authenticateTeacher(request, response, email, password, role);
-			} catch (ClassNotFoundException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+                authenticateTeacher(request, response, email, password, role);
+            } catch (ClassNotFoundException | IOException e) {
+                e.printStackTrace();
+            }
         } else {
-            response.sendRedirect("login.jsp?error=" + url("Peranan pengguna tidak sah."));
+            redirectWithError(response, "Peranan pengguna tidak sah.", role, email);
         }
-        
     }
 
     private void authenticateParent(HttpServletRequest request, HttpServletResponse response, String email, String password)
@@ -72,24 +71,27 @@ public class LoginServlet extends HttpServlet {
                     String parentEmail = rs.getString("parentEmail");
                     String parentPhoneNumber = rs.getString("parentPhoneNumber");
 
-                    // ✅ Create Session
                     HttpSession session = request.getSession(true);
+                    
+                    session.setAttribute("role", "Parent");
                     session.setAttribute("userRole", "Parent");
+                    session.setAttribute("parentId", parentID);
                     session.setAttribute("parentID", parentID);
                     session.setAttribute("parentName", parentName);
                     session.setAttribute("parentEmail", parentEmail);
                     session.setAttribute("parentPhoneNumber", parentPhoneNumber);
 
-                    // ✅ Redirect ke dashboard Parent
                     response.sendRedirect("parentDashboard.jsp");
+                    
                 } else {
-                    response.sendRedirect("login.jsp?error=" + url("E-mel atau kata laluan tidak sah."));
+                    // ✅ Hantar semula role "Parent" dan e-mel jika log masuk gagal
+                    redirectWithError(response, "E-mel atau kata laluan tidak sah.", "Parent", email);
                 }
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            response.sendRedirect("login.jsp?error=" + url("Ralat sistem. Sila cuba lagi."));
+            redirectWithError(response, "Ralat sistem. Sila cuba lagi.", "Parent", email);
         }
     }
 
@@ -111,45 +113,56 @@ public class LoginServlet extends HttpServlet {
                     String teacherEmail = rs.getString("teacherEmail");
                     String teacherPhoneNumber = rs.getString("teacherPhoneNumber");
                     int adminID = rs.getInt("adminID"); 
-                    boolean wasNull = rs.wasNull(); // Semak jika adminID bernilai NULL dalam database
+                    boolean wasNull = rs.wasNull();
 
-                    // Jika adminID NULL atau 0, pengguna ini adalah Admin
                     boolean isAdmin = wasNull || adminID == 0;
 
-                    // Semak jika cuba log masuk sebagai Admin tetapi akaun bukan Admin
                     if ("Admin".equalsIgnoreCase(requestedRole) && !isAdmin) {
-                        response.sendRedirect("login.jsp?error=" + url("Akaun anda tidak mempunyai akses sebagai Admin."));
+                        // ✅ Hantar semula requestedRole dan e-mel jika tiada akses Admin
+                        redirectWithError(response, "Akaun anda tidak mempunyai akses sebagai Admin.", requestedRole, email);
                         return;
                     }
 
-                    // ✅ Create Session
                     HttpSession session = request.getSession(true);
+                    
+                    session.setAttribute("teacherId", teacherID);
                     session.setAttribute("teacherID", teacherID);
                     session.setAttribute("teacherName", teacherName);
                     session.setAttribute("teacherEmail", teacherEmail);
                     session.setAttribute("teacherPhoneNumber", teacherPhoneNumber);
 
-                    // ✅ Redirect berasaskan peranan
                     if ("Admin".equalsIgnoreCase(requestedRole) && isAdmin) {
+                        session.setAttribute("role", "Admin");
                         session.setAttribute("userRole", "Admin");
                         response.sendRedirect("adminDashboard.jsp");
                     } else {
+                        session.setAttribute("role", "Teacher");
                         session.setAttribute("userRole", "Teacher");
                         response.sendRedirect("teacherDashboard.jsp");
                     }
 
                 } else {
-                    response.sendRedirect("login.jsp?error=" + url("E-mel atau kata laluan tidak sah."));
+                    // ✅ Hantar semula requestedRole (Teacher/Admin) dan e-mel jika kata laluan salah
+                    redirectWithError(response, "E-mel atau kata laluan tidak sah.", requestedRole, email);
                 }
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            response.sendRedirect("login.jsp?error=" + url("Ralat sistem. Sila cuba lagi."));
+            redirectWithError(response, "Ralat sistem. Sila cuba lagi.", requestedRole, email);
         }
     }
 
+    // Helper method untuk menghantar mesej ralat bersama role dan email
+    private void redirectWithError(HttpServletResponse response, String errorMessage, String role, String email) throws IOException {
+        String redirectUrl = "login.jsp?error=" + url(errorMessage) 
+                + "&role=" + url(role) 
+                + "&email=" + url(email);
+        response.sendRedirect(redirectUrl);
+    }
+
     private String url(String s) {
+        if (s == null) return "";
         return URLEncoder.encode(s, StandardCharsets.UTF_8);
     }
 }

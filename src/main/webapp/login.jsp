@@ -258,8 +258,19 @@
     <div class="card">
         <h1 class="title">Keedflix Centre</h1>
 
-        <%-- Paparan Mesej Ralat daripada URL Parameter (login.jsp?error=...) atau Request Attribute --%>
+        <%-- Mengingati peranan dan e-mel sebenar jika terdapat pusingan semula selepas log masuk gagal --%>
         <% 
+            String selectedRole = request.getParameter("role");
+            if (selectedRole == null || selectedRole.isBlank()) {
+                selectedRole = "Parent"; // Laluan peranan pilihan utama
+            }
+
+            // Ambil e-mel yang ditaip oleh pengguna (kosong jika baru buka halaman)
+            String enteredEmail = request.getParameter("email");
+            if (enteredEmail == null) {
+                enteredEmail = ""; // Tiada e-mel dummy
+            }
+
             String error = request.getParameter("error");
             String errorMessage = (String) request.getAttribute("errorMessage");
             String successMessage = (String) request.getAttribute("successMessage");
@@ -283,15 +294,15 @@
                 <!-- Pilihan Peranan -->
                 <div class="role-selector">
                     <label class="role-option">
-                        <input type="radio" name="role" value="Parent" checked onclick="updateDefaultEmail('Parent')">
+                        <input type="radio" name="role" value="Parent" <%= "Parent".equalsIgnoreCase(selectedRole) ? "checked" : "" %>>
                         Parent
                     </label>
                     <label class="role-option">
-                        <input type="radio" name="role" value="Teacher" onclick="updateDefaultEmail('Teacher')">
+                        <input type="radio" name="role" value="Teacher" <%= "Teacher".equalsIgnoreCase(selectedRole) ? "checked" : "" %>>
                         Teacher
                     </label>
                     <label class="role-option">
-                        <input type="radio" name="role" value="Admin" onclick="updateDefaultEmail('Admin')">
+                        <input type="radio" name="role" value="Admin" <%= "Admin".equalsIgnoreCase(selectedRole) ? "checked" : "" %>>
                         Admin
                     </label>
                 </div>
@@ -299,7 +310,7 @@
                 <!-- Email -->
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" value="sarah.vance@example.com" required class="form-input" placeholder="e.g. name@keedflix.com">
+                    <input type="email" id="email" name="email" value="<%= enteredEmail %>" required class="form-input" placeholder="e.g. name@keedflix.com">
                 </div>
 
                 <!-- Kata Laluan -->
@@ -348,18 +359,6 @@
     </div>
 
     <script>
-        // Kemaskini cadangan e-mel berdasarkan peranan yang dipilih
-        function updateDefaultEmail(role) {
-            const emailInput = document.getElementById('email');
-            if (role === 'Parent') {
-                emailInput.value = 'sarah.vance@example.com';
-            } else if (role === 'Teacher') {
-                emailInput.value = 'clara.davis@keedflix.edu';
-            } else if (role === 'Admin') {
-                emailInput.value = 'principal.ward@keedflix.edu';
-            }
-        }
-
         // Kawalan Modal Forgot Password
         function openForgotPasswordModal() {
             const currentEmail = document.getElementById('email').value;

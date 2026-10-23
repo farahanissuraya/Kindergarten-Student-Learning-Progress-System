@@ -6,9 +6,18 @@
 
 <%
     // =========================================================
-    // SESSION RETRIEVAL
+    // SESSION RETRIEVAL & ROLE DETECTION
     // =========================================================
-    String roleTB = (session.getAttribute("role") != null) ? session.getAttribute("role").toString() : "Parent";
+    String roleTB = (String) session.getAttribute("role");
+    
+    // Fallback: If "role" is missing in session, check if teacherId or user exists
+    if (roleTB == null || roleTB.isBlank()) {
+        if (session.getAttribute("teacherId") != null || session.getAttribute("user") != null) {
+            roleTB = "Teacher"; 
+        } else {
+            roleTB = "Parent";
+        }
+    }
     
     String fullNameTB = "User";
     String initials = "U";
@@ -58,38 +67,66 @@
         }
     }
 
-    // Portal Platform Badge & Subtitle
+	 // =========================================================
+    // DYNAMIC BADGE & COLORS
+    // =========================================================
     String platformBadge = "PARENT PLATFORM";
     String platformSubtitle = "Family Connection Hub";
+    String badgeColor = "#FFB3C6"; // Default Parent (Merah Jambu)
+    String textColor = "#2D3436";
+    String svgIcon = "<path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"></path>";
 
-    if ("Admin".equalsIgnoreCase(roleTB)) {
+    if ("Admin".equalsIgnoreCase(roleTB) || "Administrator".equalsIgnoreCase(roleTB)) {
         platformBadge = "ADMIN PLATFORM";
-        platformSubtitle = "Management & Administrative Hub";
+        platformSubtitle = "Central Administration & Governance";
+        badgeColor = "#6C5CE7"; // Admin (Ungu)
+        textColor = "#FFFFFF";
+        svgIcon = "<path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"></path>";
     } else if ("Teacher".equalsIgnoreCase(roleTB)) {
         platformBadge = "TEACHER PLATFORM";
-        platformSubtitle = "Classroom & Student Tracking Hub";
+        platformSubtitle = "Classroom Progress & Portfolio";
+        badgeColor = "#FFD02C"; // Teacher (Kuning)
+        textColor = "#2D3436";
+        svgIcon = "<path d=\"M22 10v6M2 10l10-5 10 5-10 5z\"></path><path d=\"M6 12v5c3 3 9 3 12 0v-5\"></path>";
     }
 %>
+
+<!-- Inline styling for badge role colors -->
+<style>
+    .platform-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 2px solid #2D3436;
+        font-size: 11px;
+        font-weight: 900;
+    }
+    .badge-parent { background-color: #FFB3C6; color: #2D3436; }
+    .badge-teacher { background-color: #FFD02C; color: #2D3436; }
+    .badge-admin { background-color: #6C5CE7; color: #FFFFFF; border-color: #2D3436; }
+    .badge-admin svg { stroke: #FFFFFF; }
+</style>
 
 <link rel="stylesheet" type="text/css" href="css/header.css">
 
 <header class="topbar-header">
-    <!-- Left Side: Portal Badge & Subtitle -->
-    <div class="header-left">
-        <div class="platform-badge">
-            <svg class="heart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-            <span><%= platformBadge %></span>
-        </div>
-        <span class="platform-subtitle"><%= platformSubtitle %></span>
-    </div>
-
+<!-- Left Side: Portal Badge & Subtitle -->
+	<div class="header-left">
+	    <div class="platform-badge" style="background-color: <%= badgeColor %> !important; color: <%= textColor %> !important; border: 2.5px solid #2D3436; border-radius: 999px; padding: 6px 14px; font-weight: 900; display: flex; align-items: center; gap: 6px;">
+	        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+	            <%= svgIcon %>
+	        </svg>
+	        <span><%= platformBadge %></span>
+	    </div>
+	    <span class="platform-subtitle"><%= platformSubtitle %></span>
+	</div>
     <!-- Right Side: Notification & User Profile Dropdown -->
     <div class="header-right">
         <!-- Notification Icon -->
         <button class="icon-btn" title="Notifications">
-            <svg class="bell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="bell-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
             </svg>
@@ -98,7 +135,8 @@
 
         <!-- User Profile Avatar & Dropdown Menu -->
         <div class="profile-dropdown-container">
-            <button class="avatar-btn">
+            <!-- Avatar background changes based on user role -->
+            <button class="avatar-btn" style="background-color: <%= "Teacher".equalsIgnoreCase(roleTB) ? "#FFD02C" : ("Admin".equalsIgnoreCase(roleTB) ? "#D8B4FE" : "#FFB3C6") %>; border: 2px solid #2D3436; font-weight: 900; color: #2D3436;">
                 <%= initials %>
             </button>
 
@@ -110,14 +148,14 @@
                 </div>
                 <div class="dropdown-body">
                     <a href="Profile" class="dropdown-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                         <span>MY PROFILE</span>
                     </a>
                     <a href="LogoutServlet" class="dropdown-item logout-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                             <polyline points="16 17 21 12 16 7"></polyline>
                             <line x1="21" y1="12" x2="9" y2="12"></line>

@@ -134,12 +134,7 @@
         </button>
 
         <!-- User Profile Avatar & Dropdown Menu -->
-        <div class="profile-dropdown-container">
-            <!-- Avatar background changes based on user role -->
-            <button class="avatar-btn" style="background-color: <%= "Teacher".equalsIgnoreCase(roleTB) ? "#FFD02C" : ("Admin".equalsIgnoreCase(roleTB) ? "#D8B4FE" : "#FFB3C6") %>; border: 2px solid #2D3436; font-weight: 900; color: #2D3436;">
-                <%= initials %>
-            </button>
-
+        <jsp:include page="userProfileDropdown.jsp" />
             <!-- Dropdown Menu -->
             <div class="dropdown-menu">
                 <div class="dropdown-header">
@@ -165,5 +160,5 @@
                 </div>
             </div>
         </div>
-    </div>
+
 </header>

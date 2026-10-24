@@ -1,24 +1,23 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="bean.Teacher"%>
 
 <%
-    // Tetapkan tab aktif (lalai: dashboard)
+    // Tetapkan tab aktif
     String activeTab = request.getParameter("tab");
     if (activeTab == null || activeTab.isBlank()) {
         activeTab = (String) request.getAttribute("activeTab");
     }
     if (activeTab == null || activeTab.isBlank()) {
-        activeTab = "dashboard";
+        activeTab = "profile"; // Lalai untuk profil
     }
 
-    // Ambil peranan pengguna dari Session
+    // Ambil peranan pengguna dari Session dengan selamat
     String userRole = (String) session.getAttribute("role");
-    Teacher loggedInTeacher = (Teacher) session.getAttribute("user");
-
-    // Tetapkan peranan fallback jika tidak ditetapkan secara eksplisit
     if (userRole == null || userRole.isBlank()) {
-        if (loggedInTeacher != null) {
-            userRole = "Admin"; 
+        userRole = (String) session.getAttribute("userRole");
+    }
+    if (userRole == null || userRole.isBlank()) {
+        if (session.getAttribute("teacherId") != null || session.getAttribute("teacherID") != null) {
+            userRole = "Teacher";
         } else {
             userRole = "Parent";
         }
@@ -29,7 +28,6 @@
     boolean isParent = "Parent".equalsIgnoreCase(userRole);
 %>
 
-<!-- CSS Khusus untuk Sidebar Neobrutalism (Boleh diletakkan di fail berasingan jika mahu) -->
 <style>
     .sidebar-aside {
         width: 280px;
@@ -43,7 +41,6 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* 1. Header & Logo Styling */
     .sidebar-logo-container {
         display: flex;
         flex-direction: column;
@@ -74,7 +71,7 @@
     }
 
     .sidebar-badge {
-        background-color: #F8F5FF; /* Ungu cair lembut */
+        background-color: #F8F5FF;
         color: #9333EA;
         border: 1.5px solid #E9D5FF;
         font-size: 0.65rem;
@@ -85,7 +82,6 @@
         letter-spacing: 0.05em;
     }
 
-    /* 2. Navigation Menu Styling */
     .sidebar-nav {
         display: flex;
         flex-direction: column;
@@ -112,12 +108,11 @@
     }
 
     .nav-btn.btn-active {
-        background-color: #FFD02C; /* Warna kuning bila aktif */
+        background-color: #FFD02C;
         box-shadow: 4px 4px 0px #2D3436;
         transform: translate(-2px, -2px);
     }
 
-    /* 3. Footer & Sign Out Styling */
     .sidebar-footer {
         margin-top: auto;
     }
@@ -138,10 +133,10 @@
 
 <aside class="sidebar-aside" id="sidebar-navigation">
     
-    <!-- Header Logo & Judul -->
+    <!-- Logo Header -->
     <div class="sidebar-logo-container">
         <div class="logo-box">
-            <svg class="sparkles-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
                 <path d="M5 3v4M3 5h4M19 17v4M17 19h4"/>
             </svg>
@@ -150,22 +145,22 @@
         <span class="sidebar-badge">EARLY LEARNING PLATFORM</span>
     </div>
 
-    <!-- Navigasi Menu (Sengaja dibuang ikon supaya sama dengan gambar) -->
+    <!-- Navigation Links -->
     <nav class="sidebar-nav">
         
-        <!-- Dashboard / Admin Console (Untuk Semua Peranan) -->
+        <!-- Dashboard / Admin Console -->
         <a href="${pageContext.request.contextPath}/DashboardServlet?tab=dashboard" 
            class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
             <%= isAdmin ? "Admin Console" : "Dashboard" %>
         </a>
 
-        <!-- Learning Progress (Untuk Semua Peranan) -->
+        <!-- Learning Progress -->
         <a href="${pageContext.request.contextPath}/ProgressServlet?tab=progress" 
            class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
             Learning Progress
         </a>
 
-        <!-- Student Directory (Hanya Admin & Teacher) -->
+        <!-- Student Directory (Admin & Teacher Only) -->
         <% if (isAdmin || isTeacher) { %>
             <a href="${pageContext.request.contextPath}/StudentServlet?tab=directory" 
                class="nav-btn <%= "directory".equals(activeTab) ? "btn-active" : "" %>">
@@ -173,7 +168,7 @@
             </a>
         <% } %>
 
-        <!-- Parent Directory (Hanya Admin) -->
+        <!-- Parent Directory (Admin Only) -->
         <% if (isAdmin) { %>
             <a href="${pageContext.request.contextPath}/ParentDirectoryServlet?tab=parents" 
                class="nav-btn <%= "parents".equals(activeTab) ? "btn-active" : "" %>">
@@ -181,13 +176,13 @@
             </a>
         <% } %>
 
-        <!-- Weekly News (Untuk Semua Peranan) -->
+        <!-- Weekly News -->
         <a href="${pageContext.request.contextPath}/NewsServlet?tab=news" 
            class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
             Weekly News
         </a>
 
-        <!-- Direct Message (Hanya Parent & Teacher, Admin tidak ada) -->
+        <!-- Direct Message (Parent & Teacher Only) -->
         <% if (!isAdmin) { %>
             <a href="${pageContext.request.contextPath}/ChatServlet?tab=chat" 
                class="nav-btn <%= "chat".equals(activeTab) ? "btn-active" : "" %>">
@@ -197,16 +192,4 @@
         
     </nav>
 
-    <!-- Footer: Garis Putus-putus & Sign Out (Ikon dibenarkan di sini berdasarkan gambar) -->
-    <div class="sidebar-footer">
-        <hr class="footer-divider" />
-        <a href="${pageContext.request.contextPath}/LogoutServlet" class="nav-btn btn-logout">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span>Sign Out</span>
-        </a>
-    </div>
 </aside>

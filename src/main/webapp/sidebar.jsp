@@ -6,8 +6,9 @@
     if (activeTab == null || activeTab.isBlank()) {
         activeTab = (String) request.getAttribute("activeTab");
     }
+    // DIBETULKAN: Tukar lalai (default) kepada "dashboard"
     if (activeTab == null || activeTab.isBlank()) {
-        activeTab = "profile"; // Lalai untuk profil
+        activeTab = "dashboard";
     }
 
     // Ambil peranan pengguna dari Session dengan selamat
@@ -148,10 +149,10 @@
     <!-- Navigation Links -->
     <nav class="sidebar-nav">
         
-        <!-- Dashboard / Admin Console -->
+        <!-- Dashboard Link -->
         <a href="${pageContext.request.contextPath}/DashboardServlet?tab=dashboard" 
            class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
-            <%= isAdmin ? "Admin Console" : "Dashboard" %>
+            Dashboard
         </a>
 
         <!-- Learning Progress -->

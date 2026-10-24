@@ -10,10 +10,29 @@
         <servlet-name>LogoutServlet</servlet-name>
         <servlet-class>LogoutServlet</servlet-class>
     </servlet>
-    
     <servlet-mapping>
         <servlet-name>LogoutServlet</servlet-name>
         <url-pattern>/LogoutServlet</url-pattern>
+    </servlet-mapping>
+
+    <!-- Memetakan DashboardServlet dari default package -->
+    <servlet>
+        <servlet-name>DashboardServlet</servlet-name>
+        <servlet-class>DashboardServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DashboardServlet</servlet-name>
+        <url-pattern>/DashboardServlet</url-pattern>
+    </servlet-mapping>
+
+    <!-- Memetakan ProfileServlet dari default package -->
+    <servlet>
+        <servlet-name>ProfileServlet</servlet-name>
+        <servlet-class>ProfileServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProfileServlet</servlet-name>
+        <url-pattern>/ProfileServlet</url-pattern>
     </servlet-mapping>
 
 </web-app>

@@ -97,6 +97,8 @@ public class ProfileServlet extends HttpServlet {
         request.setAttribute("profileAddress", address);
         request.setAttribute("profilePersonalId", personalId);
         request.setAttribute("profileIcNumber", icNumber);
+        
+        request.setAttribute("activeTab", "profile");
 
         request.getRequestDispatcher("profile.jsp").forward(request, response);
     }

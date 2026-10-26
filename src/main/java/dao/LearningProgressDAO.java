@@ -8,9 +8,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LearningProgressDAO {
+
+    // ==========================================
+    // KOD ASAL ANDA (DIKEKALKAN)
+    // ==========================================
 
     public boolean addLearningProgress(LearningProgress progress) throws Exception {
         String sql = "INSERT INTO LearningProgress (progressID, learningID, studentID, progressName, progressPercentage, progressStatus, teacherID) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -88,5 +94,39 @@ public class LearningProgressDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    // ==========================================
+    // KOD TAMBAHAN UNTUK STUDENT DIRECTORY
+    // ==========================================
+
+    public Map<Integer, Double> getAvgProgressMap() throws Exception {
+        Map<Integer, Double> progressMap = new HashMap<>();
+        String sql = "SELECT studentID, NVL(AVG(progressPercentage), 0) AS avgProgress FROM LearningProgress GROUP BY studentID";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                progressMap.put(rs.getInt("studentID"), Math.round(rs.getDouble("avgProgress") * 10.0) / 10.0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return progressMap;
+    }
+
+    public int getTotalLogsCount() {
+        String sql = "SELECT COUNT(*) FROM LearningProgress";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

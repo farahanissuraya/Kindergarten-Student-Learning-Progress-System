@@ -163,7 +163,7 @@
 
         <!-- Student Directory (Admin & Teacher Only) -->
         <% if (isAdmin || isTeacher) { %>
-            <a href="${pageContext.request.contextPath}/StudentServlet?tab=directory" 
+            <a href="${pageContext.request.contextPath}/StudentDirectoryServlet?tab=directory" 
                class="nav-btn <%= "directory".equals(activeTab) ? "btn-active" : "" %>">
                 Student Directory
             </a>

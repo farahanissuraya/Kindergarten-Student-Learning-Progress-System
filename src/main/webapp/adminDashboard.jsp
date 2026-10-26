@@ -81,7 +81,6 @@
             width: 280px;
             flex-shrink: 0;
             background-color: #FFFFFF;
-            z-index: 10;
         }
 
         /* Main Section Layout */

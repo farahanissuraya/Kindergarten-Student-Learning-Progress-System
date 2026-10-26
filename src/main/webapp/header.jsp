@@ -162,3 +162,6 @@
         </div>
 
 </header>
+
+<!-- MENYERITKAN FAIL MODAL LOG OUT DI SINI -->
+<jsp:include page="logout.jsp" />

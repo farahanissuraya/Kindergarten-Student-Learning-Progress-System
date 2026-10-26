@@ -237,21 +237,25 @@
 
 <!-- JavaScript untuk Buka & Tutup Modal -->
 <script>
-    function openLogoutModal() {
-        const modal = document.getElementById('logoutModalBackdrop');
-        if (modal) {
-            modal.classList.add('open');
-            modal.setAttribute('aria-hidden', 'false');
-        }
-    }
-
-    function closeLogoutModal() {
-        const modal = document.getElementById('logoutModalBackdrop');
-        if (modal) {
-            modal.classList.remove('open');
-            modal.setAttribute('aria-hidden', 'true');
-        }
-    }
+	function openLogoutModal() {
+	    var modal = document.getElementById('logoutModalBackdrop');
+	    if (modal) {
+	        modal.classList.add('open');
+	        modal.style.display = 'flex'; // Force display jika CSS class bermasalah
+	        modal.setAttribute('aria-hidden', 'false');
+	    } else {
+	        console.error('Logout modal element (logoutModalBackdrop) not found!');
+	    }
+	}
+	
+	function closeLogoutModal() {
+	    var modal = document.getElementById('logoutModalBackdrop');
+	    if (modal) {
+	        modal.classList.remove('open');
+	        modal.style.display = 'none';
+	        modal.setAttribute('aria-hidden', 'true');
+	    }
+	}
 
     // Pautkan secara automatik ke butang Sign Out dalam sidebar jika wujud
     document.addEventListener('DOMContentLoaded', function() {

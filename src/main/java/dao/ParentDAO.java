@@ -8,7 +8,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ParentDAO {
 
@@ -106,8 +108,43 @@ public class ParentDAO {
         return false;
     }
 
-	public int getParentCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    public int getParentCount() {
+        String sql = "SELECT COUNT(*) FROM Parent";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    // ==========================================
+    // KOD TAMBAHAN UNTUK STUDENT DIRECTORY
+    // ==========================================
+    public Map<Integer, Parent> getAllParentsMap() throws Exception {
+        Map<Integer, Parent> parentMap = new HashMap<>();
+        String sql = "SELECT * FROM Parent";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Parent parent = new Parent();
+                parent.setParentID(rs.getInt("parentID"));
+                parent.setParentName(rs.getString("parentName"));
+                parent.setParentEmail(rs.getString("parentEmail"));
+                parent.setParentPassword(rs.getString("parentPassword"));
+                parent.setParentPhoneNumber(rs.getString("parentPhoneNumber"));
+                
+                parentMap.put(parent.getParentID(), parent);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return parentMap;
+    }
 }

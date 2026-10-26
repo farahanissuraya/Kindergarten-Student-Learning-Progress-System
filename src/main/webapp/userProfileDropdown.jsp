@@ -54,7 +54,7 @@
     }
 %>
 
-<!-- STYLING NEOBRUTALISM DROPDOWN -->
+<!-- STYLING NEOBRUTALISM DROPDOWN & MODAL LOGOUT -->
 <style>
     .profile-dropdown-wrapper {
         position: relative;
@@ -216,6 +216,165 @@
         background-color: #FFE4E6;
         border-color: #FDA4AF;
     }
+
+    /* ==========================================
+       MODAL SIGN OUT NEOBRUTALISM STYLES
+       ========================================== */
+    .logout-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .logout-modal-overlay.active {
+        display: flex;
+    }
+
+    .logout-modal-card {
+        background-color: #FFFFFF;
+        border: 3.5px solid #2D3436;
+        border-radius: 32px;
+        box-shadow: 8px 8px 0px 0px #2D3436;
+        width: 100%;
+        max-width: 500px;
+        padding: 32px;
+        position: relative;
+        box-sizing: border-box;
+        animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-close-x {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: #64748B;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        border-radius: 50%;
+        transition: all 0.15s ease;
+    }
+
+    .modal-close-x:hover {
+        color: #2D3436;
+        background-color: #F1F5F9;
+    }
+
+    .modal-header-flex {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .modal-icon-box {
+        width: 56px;
+        height: 56px;
+        border-radius: 20px;
+        background-color: #FFE4E6;
+        border: 2.5px solid #2D3436;
+        box-shadow: 3px 3px 0px 0px #2D3436;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #FF2A5F;
+        flex-shrink: 0;
+    }
+
+    .modal-title-text {
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: #1E293B;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .modal-subtitle-text {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #64748B;
+        margin: 4px 0 0 0;
+    }
+
+    .modal-description-body {
+        font-size: 0.88rem;
+        color: #475569;
+        font-weight: 500;
+        line-height: 1.55;
+        margin: 0 0 28px 0;
+    }
+
+    .modal-actions-flex {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .btn-modal-cancel {
+        padding: 12px 24px;
+        border-radius: 9999px;
+        border: 2px solid #CBD5E1;
+        background-color: #FFFFFF;
+        color: #475569;
+        font-size: 0.85rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .btn-modal-cancel:hover {
+        background-color: #F8FAFC;
+        border-color: #94A3B8;
+        color: #1E293B;
+    }
+
+    .btn-modal-confirm {
+        padding: 12px 24px;
+        border-radius: 9999px;
+        border: 2.5px solid #2D3436;
+        background-color: #FF2A5F;
+        color: #FFFFFF;
+        font-size: 0.85rem;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 3px 3px 0px 0px #2D3436;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.15s ease;
+    }
+
+    .btn-modal-confirm:hover {
+        background-color: #E11D48;
+        transform: translate(-1px, -1px);
+        box-shadow: 4px 4px 0px 0px #2D3436;
+    }
+
+    .btn-modal-confirm:active {
+        transform: translate(1px, 1px);
+        box-shadow: 2px 2px 0px 0px #2D3436;
+    }
 </style>
 
 <!-- STRUKTUR HTML DROPDOWN -->
@@ -252,7 +411,8 @@
             </a>
 
             <div class="dropdown-logout-wrapper">
-                <a href="${pageContext.request.contextPath}/LogoutServlet" class="dropdown-logout-btn" id="menu-sign-out-btn">
+                <!-- Memanggil Modal Sign Out bukannya terus redirect -->
+                <a href="javascript:void(0);" onclick="openLogoutModal(event)" class="dropdown-logout-btn" id="menu-sign-out-btn">
                     <span>Sign Out</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -266,7 +426,55 @@
     </div>
 </div>
 
-<!-- JAVASCRIPT KAWALAN BUKA/TUTUP -->
+<!-- STRUKTUR HTML MODAL SIGN OUT NEOBRUTALISM -->
+<div class="logout-modal-overlay" id="logoutModalOverlay" onclick="closeLogoutModalOnOverlay(event)">
+    <div class="logout-modal-card" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+        
+        <!-- Butang Tutup (X) -->
+        <button type="button" class="modal-close-x" onclick="closeLogoutModal()" aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+            </svg>
+        </button>
+
+        <!-- Tajuk & Ikon -->
+        <div class="modal-header-flex">
+            <div class="modal-icon-box">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+            </div>
+            <div>
+                <h2 class="modal-title-text">Sign Out of Platform?</h2>
+                <p class="modal-subtitle-text">End current active session in Keedflix Centre</p>
+            </div>
+        </div>
+
+        <!-- Perenggan Penerangan -->
+        <p class="modal-description-body">
+            You will be redirected to the secure login screen. Any unsaved in-progress edits will be stored in your local session.
+        </p>
+
+        <!-- Butang Tindakan -->
+        <div class="modal-actions-flex">
+            <button type="button" class="btn-modal-cancel" onclick="closeLogoutModal()">
+                Cancel
+            </button>
+            <a href="${pageContext.request.contextPath}/LogoutServlet" class="btn-modal-confirm" id="confirm-signout-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Confirm Sign Out</span>
+            </a>
+        </div>
+
+    </div>
+</div>
+
 <script>
     function toggleProfileDropdown(event) {
         event.stopPropagation();
@@ -276,7 +484,39 @@
         }
     }
 
-    // Tutup dropdown secara automatik apabila pengguna menekan di luar menu
+    function openLogoutModal(event) {
+        if (event) event.stopPropagation();
+        
+        // 1. Tutup dropdown menu
+        const dropdown = document.getElementById('user-profile-dropdown');
+        if (dropdown) {
+            dropdown.classList.remove('show');
+        }
+
+        // 2. Buka modal overlay
+        const modal = document.getElementById('logoutModalOverlay');
+        if (modal) {
+            // Memindahkan modal terus ke <body> supaya overlay gelap dapat menutup sidebar
+            if (modal.parentNode !== document.body) {
+                document.body.appendChild(modal);
+            }
+            modal.classList.add('active');
+        }
+    }
+
+    function closeLogoutModal() {
+        const modal = document.getElementById('logoutModalOverlay');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
+    function closeLogoutModalOnOverlay(event) {
+        if (event.target.id === 'logoutModalOverlay') {
+            closeLogoutModal();
+        }
+    }
+
     window.addEventListener('click', function(event) {
         const dropdown = document.getElementById('user-profile-dropdown');
         const trigger = document.getElementById('user-avatar-trigger');
@@ -284,6 +524,12 @@
             if (!dropdown.contains(event.target) && !trigger.contains(event.target)) {
                 dropdown.classList.remove('show');
             }
+        }
+    });
+
+    window.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeLogoutModal();
         }
     });
 </script>

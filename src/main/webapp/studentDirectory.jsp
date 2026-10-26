@@ -250,12 +250,12 @@
                     <div class="directory-banner">
                         <div>
                             <span class="banner-badge">Administrator Console</span>
-                            <h1 class="banner-title">Student Directory & Pupil Profiles</h1>
+                            <h1 class="banner-title">Student Directory & Profiles</h1>
                             <p class="banner-subtitle">Centralized Oracle database registry for Keedflix Centre cohorts</p>
                         </div>
                         <div style="display: flex; gap: 10px;">
                             <button type="button" onclick="window.print()" class="btn-neo" style="background-color: #FFFFFF;">🖨️ Print Roster</button>
-                            <button type="button" onclick="alert('Enroll Pupil functionality triggered.')" class="btn-neo btn-coral">➕ Enroll New Pupil</button>
+                            <button type="button" onclick="window.location.href='${pageContext.request.contextPath}/RegisterStudentServlet'" class="btn-neo btn-coral">➕ Enroll New Student</button>
                         </div>
                     </div>
 

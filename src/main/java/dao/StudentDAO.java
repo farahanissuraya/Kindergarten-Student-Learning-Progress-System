@@ -14,7 +14,7 @@ import java.util.List;
 public class StudentDAO {
 
     public boolean addStudent(Student student) throws Exception {
-        String sql = "INSERT INTO Student (studentID, studentName, studentAge, studentClass, parentID) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Student (studentID, studentName, studentAge, studentClass, parentID, studentIC, studentGender) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -27,6 +27,8 @@ public class StudentDAO {
             }
             pstmt.setString(4, student.getStudentClass());
             pstmt.setInt(5, student.getParentID());
+            pstmt.setString(6, student.getStudentIC());
+            pstmt.setString(7, student.getStudentGender());
             
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -51,6 +53,11 @@ public class StudentDAO {
                 student.setStudentAge(rs.wasNull() ? null : age);
                 student.setStudentClass(rs.getString("studentClass"));
                 student.setParentID(rs.getInt("parentID"));
+                
+                // DATA BAHARU
+                student.setStudentIC(rs.getString("studentIC"));
+                student.setStudentGender(rs.getString("studentGender"));
+                
                 return student;
             }
         } catch (SQLException e) {
@@ -74,6 +81,11 @@ public class StudentDAO {
                 student.setStudentAge(rs.wasNull() ? null : age);
                 student.setStudentClass(rs.getString("studentClass"));
                 student.setParentID(rs.getInt("parentID"));
+                
+                // DATA BAHARU
+                student.setStudentIC(rs.getString("studentIC"));
+                student.setStudentGender(rs.getString("studentGender"));
+                
                 list.add(student);
             }
         } catch (SQLException e) {
@@ -83,7 +95,7 @@ public class StudentDAO {
     }
 
     public boolean updateStudent(Student student) throws Exception {
-        String sql = "UPDATE Student SET studentName = ?, studentAge = ?, studentClass = ?, parentID = ? WHERE studentID = ?";
+        String sql = "UPDATE Student SET studentName = ?, studentAge = ?, studentClass = ?, parentID = ?, studentIC = ?, studentGender = ? WHERE studentID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -95,7 +107,12 @@ public class StudentDAO {
             }
             pstmt.setString(3, student.getStudentClass());
             pstmt.setInt(4, student.getParentID());
-            pstmt.setInt(5, student.getStudentID());
+            
+            // DATA BAHARU
+            pstmt.setString(5, student.getStudentIC());
+            pstmt.setString(6, student.getStudentGender());
+            
+            pstmt.setInt(7, student.getStudentID()); // Kunci Utama sentiasa di hujung
             
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -117,8 +134,17 @@ public class StudentDAO {
         return false;
     }
 
-	public int getStudentCount() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    public int getStudentCount() {
+        String sql = "SELECT COUNT(*) FROM Student";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

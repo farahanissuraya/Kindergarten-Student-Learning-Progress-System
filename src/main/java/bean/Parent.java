@@ -10,6 +10,9 @@ public class Parent implements Serializable {
     private String parentEmail;
     private String parentPassword;
     private String parentPhoneNumber;
+    private String parentIC;
+    private String parentGender;
+    private String parentAddress;
 
     public Parent() {
     }
@@ -52,5 +55,28 @@ public class Parent implements Serializable {
 
     public void setParentPhoneNumber(String parentPhoneNumber) {
         this.parentPhoneNumber = parentPhoneNumber;
+    }
+    
+    public String getParentIC() { 
+    	return parentIC; 
+    }
+    
+    public void setParentIC(String parentIC) { 
+    	this.parentIC = parentIC; 
+    }
+    
+    public String getParentGender() { 
+    	return parentGender; 
+    }
+    
+    public void setParentGender(String parentGender) { 
+    	this.parentGender = parentGender; 
+    }
+    
+    public String getParentAddress() { 
+    	return parentAddress; 
+    }
+    public void setParentAddress(String parentAddress) { 
+    	this.parentAddress = parentAddress; 
     }
 }

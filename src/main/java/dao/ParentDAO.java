@@ -15,7 +15,7 @@ import java.util.Map;
 public class ParentDAO {
 
     public boolean addParent(Parent parent) throws Exception {
-        String sql = "INSERT INTO Parent (parentID, parentName, parentEmail, parentPassword, parentPhoneNumber) VALUES (?, ?, ?, ?, ?)";
+    	String sql = "INSERT INTO Parent (parentID, parentName, parentEmail, parentPassword, parentPhoneNumber, parentIC, parentGender, parentAddress) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -24,6 +24,9 @@ public class ParentDAO {
             pstmt.setString(3, parent.getParentEmail());
             pstmt.setString(4, parent.getParentPassword());
             pstmt.setString(5, parent.getParentPhoneNumber());
+            pstmt.setString(6, parent.getParentIC());
+            pstmt.setString(7, parent.getParentGender());
+            pstmt.setString(8, parent.getParentAddress());
             
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {

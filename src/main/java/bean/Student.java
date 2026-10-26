@@ -9,6 +9,8 @@ public class Student implements Serializable {
     private String studentName;
     private Integer studentAge;
     private String studentClass;
+    private String studentIC;
+    private String studentGender;
     private int parentID;
 
     public Student() {
@@ -44,6 +46,22 @@ public class Student implements Serializable {
 
     public void setStudentClass(String studentClass) {
         this.studentClass = studentClass;
+    }
+    
+    public String getStudentIC() { 
+    	return studentIC; 
+    }
+    
+    public void setStudentIC(String studentIC) { 
+    	this.studentIC = studentIC; 
+    }
+    
+    public String getStudentGender() { 
+    	return studentGender; 
+    }
+    
+    public void setStudentGender(String studentGender) { 
+    	this.studentGender = studentGender; 
     }
 
     public int getParentID() {

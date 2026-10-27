@@ -34,5 +34,15 @@
         <servlet-name>ProfileServlet</servlet-name>
         <url-pattern>/ProfileServlet</url-pattern>
     </servlet-mapping>
+    
+    <!-- Daftarkan Progress Servlet secara manual -->
+    <servlet>
+        <servlet-name>ProgressServlet</servlet-name>
+        <servlet-class>ProgressServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProgressServlet</servlet-name>
+        <url-pattern>/ProgressServlet</url-pattern>
+    </servlet-mapping>
 
 </web-app>

@@ -169,18 +169,18 @@
             </a>
         <% } %>
 
-        <!-- Parent Directory (Admin Only) -->
-        <% if (isAdmin) { %>
+      <!-- Parent Directory (Admin Only) -->
+   <!--        <% if (isAdmin) { %>
             <a href="${pageContext.request.contextPath}/ParentDirectoryServlet?tab=parents" 
                class="nav-btn <%= "parents".equals(activeTab) ? "btn-active" : "" %>">
                 Parent Directory
             </a>
-        <% } %>
+        <% } %> --> 
 
         <!-- Weekly News -->
         <a href="${pageContext.request.contextPath}/NewsServlet?tab=news" 
            class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
-            Weekly News
+            News
         </a>
 
         <!-- Direct Message (Parent & Teacher Only) -->

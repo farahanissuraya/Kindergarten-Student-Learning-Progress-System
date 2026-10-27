@@ -12,6 +12,8 @@ public class News implements Serializable {
     private Timestamp newsDate;
     private String newsCategory;
     private int teacherID;
+    private String targetAudience;
+    private boolean pinned;
 
     public News() {
     }
@@ -54,6 +56,21 @@ public class News implements Serializable {
 
     public void setNewsCategory(String newsCategory) {
         this.newsCategory = newsCategory;
+    }
+    
+    public String getTargetAudience() { 
+    	return targetAudience; 
+    }
+    
+    public void setTargetAudience(String targetAudience) { 
+    	this.targetAudience = targetAudience; 
+    }
+
+    public boolean isPinned() { 
+    	return pinned; 
+    }
+    public void setPinned(boolean pinned) { 
+    	this.pinned = pinned; 
     }
 
     public int getTeacherID() {

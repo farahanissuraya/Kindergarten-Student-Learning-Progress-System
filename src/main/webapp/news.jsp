@@ -1,15 +1,24 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List"%>
+<%@ page import="java.text.SimpleDateFormat"%>
 <%@ page import="bean.News"%>
+<%@ page import="dao.NewsDAO"%>
 <%
     List<News> newsList = (List<News>) request.getAttribute("newsList");
+    
+    // Inisialisasi DAO untuk carian nama guru & formatter tarikh
+    NewsDAO newsDAOForName = new NewsDAO();
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     
     // Semak peranan pengguna dari sesi ('Admin', 'Teacher', 'Parent')
     String userRole = (String) session.getAttribute("userRole");
     if (userRole == null) userRole = "Teacher"; // Tetapan lalai untuk pengujian
 
-    boolean canCreateUpdate = userRole.equals("Admin") || userRole.equals("Teacher");
-    boolean canDelete = userRole.equals("Admin"); // Teacher tidak boleh delete
+    // LOGIK PERANAN (ROLES):
+    // Teacher sahaja boleh cipta/kemaskini news. Admin sahaja boleh padam.
+    boolean canCreate = "Teacher".equalsIgnoreCase(userRole);
+    boolean canUpdate = "Teacher".equalsIgnoreCase(userRole);
+    boolean canDelete = "Admin".equalsIgnoreCase(userRole);
     
     String selectedCategory = request.getParameter("category");
     if (selectedCategory == null) selectedCategory = "All";
@@ -82,7 +91,48 @@
         .cat-select-card.selected { background: #E9D5FF; border-color: #2D3436; box-shadow: 3px 3px 0px 0px #2D3436; transform: translate(-2px, -2px); font-weight: 900; }
 
         .audience-card { border: 2.5px solid #2D3436; border-radius: 16px; padding: 16px; cursor: pointer; background: #FFF; transition: all 0.1s; }
-        .audience-card.selected { background: #7BE495; box-shadow: 3px 3px 0px 0px #2D3436; transform: translate(-2px, -2px); }
+        .audience-card.selected { background: #7BE495; border-color: #2D3436; box-shadow: 3px 3px 0px 0px #2D3436; transform: translate(-2px, -2px); }
+
+        /* Kesan tetikus tuju pada kad berita */
+        .news-card-clickable {
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .news-card-clickable:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 7px 7px 0px 0px #2D3436 !important;
+        }
+        .news-card-clickable:active {
+            transform: translate(1px, 1px);
+            box-shadow: 3px 3px 0px 0px #2D3436 !important;
+        }
+
+        /* Style Modal Terperinci (Read Detail) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(45, 52, 54, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+        .modal-detail-card {
+            background: #FFFFFF;
+            border: 3.5px solid #2D3436;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 8px 8px 0px 0px #2D3436;
+            padding: 28px;
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -101,7 +151,7 @@
                 <div class="container">
                     
                     <% if (isEditorMode) { %>
-                        <!-- ================= DEDICATED FULL-PAGE EDITOR (MENGIKUT GAYA IMEJ RUJUKAN) ================= -->
+                        <!-- ================= DEDICATED FULL-PAGE EDITOR ================= -->
                         
                         <!-- 1. Header Bar -->
                         <div class="neo-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 20px 28px;">
@@ -119,7 +169,7 @@
                                 </div>
                             </div>
                             <div style="font-size: 0.85rem; font-weight: 800; color: #64748B;">
-                                Penerbit: <span style="color: #2D3436;">Ms. Clara Davis</span> (<%= userRole %>)
+                                Penerbit: <span style="color: #2D3436;">Peranan Anda</span> (<%= userRole %>)
                             </div>
                         </div>
 
@@ -144,8 +194,8 @@
                                 <h3 id="cardPrevTitle" style="font-size: 1.2rem; font-weight: 900; margin: 0 0 10px 0; color: #2D3436;">Tajuk Buletin Mingguan Akan Dipaparkan Di Sini...</h3>
                                 <p id="cardPrevContent" style="font-size: 0.85rem; font-weight: 600; color: #4B5563; line-height: 1.5; margin: 0 0 20px 0; white-space: pre-line;">Kandungan berita mingguan, pengumuman kurikulum, makluman aktiviti pembelajaran, dan pesanan mesra untuk keluarga akan dipaparkan di bahagian ini secara langsung semasa anda menaip...</p>
                                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #CBD5E1; padding-top: 12px; font-size: 0.75rem; font-weight: 800; color: #64748B;">
-                                    <span>👤 Ms. Clara Davis (Teacher)</span>
-                                    <span>📅 2026-10-27</span>
+                                    <span>👤 Pendidik Keedflix</span>
+                                    <span>📅 <%= sdf.format(new java.util.Date()) %></span>
                                 </div>
                             </div>
                         </div>
@@ -313,7 +363,6 @@
                                 document.getElementById('inputTitle').value = title;
                                 document.getElementById('inputContent').value = sampleText;
                                 
-                                // Pilih kategori secara automatik
                                 const cards = document.querySelectorAll('.cat-select-card');
                                 cards.forEach(card => {
                                     if(card.innerText.includes(category)) {
@@ -328,7 +377,6 @@
                                 checkbox.checked = !checkbox.checked;
                             }
 
-                            // Run initial preview sync
                             window.onload = function() {
                                 if(document.getElementById('inputTitle')) {
                                     updatePreview();
@@ -349,7 +397,8 @@
                                 </div>
                             </div>
 
-                            <% if (canCreateUpdate) { %>
+                            <!-- HANYA TEACHER BOLEH TAMBAH BERITA BAHARU -->
+                            <% if (canCreate) { %>
                                 <a href="NewsServlet?mode=create" class="btn-neo btn-yellow">
                                     ➕ Create News
                                 </a>
@@ -375,7 +424,7 @@
                                 if (newsList != null) {
                                     for (News item : newsList) {
                                         if (!selectedCategory.equals("All") && !item.getNewsCategory().equalsIgnoreCase(selectedCategory)) continue;
-                                        if (userRole.equals("Parent") && "Teachers".equalsIgnoreCase(item.getTargetAudience())) continue;
+                                        if (userRole.equalsIgnoreCase("Parent") && "Teachers".equalsIgnoreCase(item.getTargetAudience())) continue;
                                         hasNews = true;
 
                                         String badgeClass = "badge-academic";
@@ -384,7 +433,15 @@
                                         else if ("Holiday".equalsIgnoreCase(item.getNewsCategory())) badgeClass = "badge-holiday";
                                         else if ("Nutrition".equalsIgnoreCase(item.getNewsCategory())) badgeClass = "badge-nutrition";
                             %>
-                                <div class="neo-card" style="display: flex; flex-direction: column; justify-content: space-between; position: relative; <%= item.isPinned() ? "border: 3px solid #EAB308; background: #FEFCE8;" : "" %>">
+                                <div class="neo-card news-card-clickable" 
+                                     onclick="openDetailModal('<%= item.getNewsTitle().replace("'", "\\'").replace("\"", "\\\"") %>', 
+                                                              '<%= item.getNewsCategory() %>', 
+                                                              '<%= item.getTargetAudience() != null ? item.getTargetAudience() : "All" %>', 
+                                                              '<%= item.getNewsContent().replace("'", "\\'").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "") %>', 
+                                                              '<%= newsDAOForName.getTeacherNameById(item.getTeacherID()).replace("'", "\\'") %>', 
+                                                              '<%= item.getNewsDate() != null ? sdf.format(item.getNewsDate()) : "-" %>', 
+                                                              <%= item.isPinned() %>)"
+                                     style="display: flex; flex-direction: column; justify-content: space-between; position: relative; <%= item.isPinned() ? "border: 3px solid #EAB308; background: #FEFCE8;" : "" %>">
                                     <div>
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -395,27 +452,32 @@
                                                 <span class="badge" style="background: #F1F5F9; color: #64748B;">Audience: <%= item.getTargetAudience() != null ? item.getTargetAudience() : "All" %></span>
                                             </div>
 
-                                            <div style="display: flex; gap: 6px;">
-                                                <% if (canCreateUpdate) { %>
-                                                    <a href="NewsServlet?mode=edit&id=<%= item.getNewsID() %>" class="btn-neo" style="padding: 6px 10px; font-size: 0.75rem;" title="Kemaskini">✏️</a>
-                                                <% } %>
-                                                <% if (canDelete) { %>
-                                                    <form action="NewsServlet" method="POST" style="margin: 0;">
-                                                        <input type="hidden" name="action" value="delete">
-                                                        <input type="hidden" name="newsID" value="<%= item.getNewsID() %>">
-                                                        <button type="submit" class="btn-neo btn-rose" style="padding: 6px 10px; font-size: 0.75rem;" onclick="return confirm('Padam buletin ini?');" title="Padam">🗑️</button>
-                                                    </form>
-                                                <% } %>
-                                            </div>
+                                            <!-- BAHAGIAN AKSI (KEMASKINI & PADAM BERASASKAN PERANAN) -->
+                                            <% if (canUpdate || canDelete) { %>
+                                                <div style="display: flex; gap: 6px;" onclick="event.stopPropagation();">
+                                                    <!-- HANYA TEACHER BOLEH KEMASKINI -->
+                                                    <% if (canUpdate) { %>
+                                                        <a href="NewsServlet?mode=edit&id=<%= item.getNewsID() %>" class="btn-neo" style="padding: 6px 10px; font-size: 0.75rem;" title="Kemaskini">✏️</a>
+                                                    <% } %>
+                                                    <!-- HANYA ADMIN BOLEH PADAM -->
+                                                    <% if (canDelete) { %>
+                                                        <form action="NewsServlet" method="POST" style="margin: 0;">
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="newsID" value="<%= item.getNewsID() %>">
+                                                            <button type="submit" class="btn-neo btn-rose" style="padding: 6px 10px; font-size: 0.75rem;" onclick="return confirm('Padam buletin ini?');" title="Padam">🗑️</button>
+                                                        </form>
+                                                    <% } %>
+                                                </div>
+                                            <% } %>
                                         </div>
 
                                         <h3 style="font-size: 1.1rem; font-weight: 900; margin: 0 0 8px 0;"><%= item.getNewsTitle() %></h3>
-                                        <p style="font-size: 0.85rem; font-weight: 600; color: #4B5563; line-height: 1.5; margin: 0; white-space: pre-line;"><%= item.getNewsContent() %></p>
+                                        <p style="font-size: 0.85rem; font-weight: 600; color: #4B5563; line-height: 1.5; margin: 0; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;"><%= item.getNewsContent() %></p>
                                     </div>
 
                                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #CBD5E1; margin-top: 20px; padding-top: 12px; font-size: 0.75rem; font-weight: 800; color: #64748B;">
-                                        <span>👤 Teacher ID: #<%= item.getTeacherID() %></span>
-                                        <span>📅 <%= item.getNewsDate() != null ? item.getNewsDate().toString().substring(0, 10) : "" %></span>
+                                        <span>👤 <%= newsDAOForName.getTeacherNameById(item.getTeacherID()) %></span>
+                                        <span>📅 <%= item.getNewsDate() != null ? sdf.format(item.getNewsDate()) : "-" %></span>
                                     </div>
                                 </div>
                             <%      }
@@ -434,5 +496,73 @@
         </main>
     </div>
 
+    <!-- MODAL DETAIL BULETIN (READ DETAIL POPUP) -->
+    <div id="newsDetailModal" class="modal-overlay" onclick="closeDetailModal(event)">
+        <div class="modal-detail-card" onclick="event.stopPropagation();">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; gap: 12px;">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                    <span id="modalCatBadge" class="badge badge-academic">Category</span>
+                    <span id="modalPinBadge" class="badge" style="background: #FEF08A; border-color: #2D3436; display: none;">📌 Pinned</span>
+                    <span id="modalAudBadge" class="badge" style="background: #F1F5F9; color: #64748B;">Audience: All</span>
+                </div>
+                <button type="button" onclick="closeDetailModalDirect()" style="background: #FFFFFF; border: 2.5px solid #2D3436; border-radius: 12px; font-weight: 900; width: 36px; height: 36px; cursor: pointer; box-shadow: 2px 2px 0px #2D3436; display: flex; align-items: center; justify-content: center;">✕</button>
+            </div>
+
+            <h2 id="modalTitle" style="font-size: 1.4rem; font-weight: 900; margin: 0 0 16px 0; color: #2D3436; line-height: 1.3;">Tajuk Berita</h2>
+
+            <div style="background: #FAF5EF; border: 2.5px solid #2D3436; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                <p id="modalContent" style="font-size: 0.95rem; font-weight: 600; color: #2D3436; line-height: 1.6; margin: 0; white-space: pre-line;"></p>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #CBD5E1; padding-top: 14px; font-size: 0.8rem; font-weight: 800; color: #64748B;">
+                <span id="modalAuthor">👤 Teacher Name</span>
+                <span id="modalDate">📅 Date</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openDetailModal(title, category, audience, content, author, date, pinned) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalContent').innerText = content;
+            document.getElementById('modalAuthor').innerText = '👤 ' + author;
+            document.getElementById('modalDate').innerText = '📅 ' + date;
+            document.getElementById('modalAudBadge').innerText = 'Audience: ' + audience;
+
+            const catBadge = document.getElementById('modalCatBadge');
+            catBadge.innerText = category;
+            catBadge.className = 'badge';
+            if (category.toLowerCase() === 'announcement') {
+                catBadge.classList.add('badge-announcement');
+            } else if (category.toLowerCase() === 'event') {
+                catBadge.classList.add('badge-event');
+            } else if (category.toLowerCase() === 'holiday') {
+                catBadge.classList.add('badge-holiday');
+            } else if (category.toLowerCase() === 'nutrition') {
+                catBadge.classList.add('badge-nutrition');
+            } else {
+                catBadge.classList.add('badge-academic');
+            }
+
+            const pinBadge = document.getElementById('modalPinBadge');
+            if (pinned) {
+                pinBadge.style.display = 'inline-block';
+            } else {
+                pinBadge.style.display = 'none';
+            }
+
+            document.getElementById('newsDetailModal').style.display = 'flex';
+        }
+
+        function closeDetailModal(e) {
+            if (e.target.id === 'newsDetailModal') {
+                document.getElementById('newsDetailModal').style.display = 'none';
+            }
+        }
+
+        function closeDetailModalDirect() {
+            document.getElementById('newsDetailModal').style.display = 'none';
+        }
+    </script>
 </body>
 </html>

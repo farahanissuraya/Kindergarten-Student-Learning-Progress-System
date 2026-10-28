@@ -42,11 +42,12 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    .sidebar-logo-container {
+	.sidebar-logo-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin-bottom: 32px;
+        margin-bottom: 24px;
+        width: 100%;
     }
     
     .logo-box {
@@ -130,20 +131,41 @@
         justify-content: center;
         gap: 8px;
     }
+    
+/* Kotak Logo Tanpa Background Kuning & Border */
+    .logo-box {
+        width: 100%;
+        max-width: 200px; /* Menghadkan lebar maksimum supaya ada gap kiri/kanan */
+        height: auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 16px;
+        padding: 0 16px; /* Ruang gap selamat dari tepi barrier sidebar */
+        box-sizing: border-box;
+    }
+
+    /* Saiz Logo Mengikut Lebar Kotak */
+    .logo-img {
+        width: 100%;
+        height: auto;
+        max-height: 80px; /* Ketinggian optimum supaya tidak terlalu tinggi */
+        object-fit: contain;
+        display: block;
+    }
+    
 </style>
 
 <aside class="sidebar-aside" id="sidebar-navigation">
     
     <!-- Logo Header -->
-    <div class="sidebar-logo-container">
-        <div class="logo-box">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                <path d="M5 3v4M3 5h4M19 17v4M17 19h4"/>
-            </svg>
-        </div>
-        <h1 class="sidebar-title">Keedflix Centre</h1>
-        <span class="sidebar-badge">EARLY LEARNING PLATFORM</span>
+	<div class="sidebar-logo-container">
+
+            <img src="${pageContext.request.contextPath}/images/logo-keedsflix.png" 
+                 alt="Keedflix Logo" 
+                 class="logo-img" />
+
+
     </div>
 
     <!-- Navigation Links -->

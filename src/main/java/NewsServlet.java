@@ -38,41 +38,51 @@ public class NewsServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession();
         
-        // Ambil peranan pengguna dari sesi (lalai kepada 'Teacher' jika tiada)
+        // Ambil peranan pengguna daripada session
         String userRole = (String) session.getAttribute("userRole");
         if (userRole == null) userRole = "Teacher"; 
+
+        // Ambil teacherID dinamik daripada session
+        Integer loggedInTeacherID = (Integer) session.getAttribute("teacherID");
+        
+        // Sekiranya tiada ID dalam session, dapatkan ID guru pertama dari Oracle secara dinamik
+        if (loggedInTeacherID == null || loggedInTeacherID == 0) {
+            loggedInTeacherID = newsDAO.getValidTeacherID();
+        }
 
         String action = request.getParameter("action");
 
         try {
-            // Teacher & Admin boleh Tambah (Add)
-            if ("add".equals(action) && "Teacher".equals(userRole)) {
+            // Mana-mana pengguna bernama 'Teacher' atau 'Admin' berhak publish/update
+            if ("add".equals(action) && ("Teacher".equals(userRole) || "Admin".equals(userRole))) {
                 News news = new News();
                 news.setNewsID(getNextNewsId());
                 news.setNewsTitle(request.getParameter("title"));
                 news.setNewsCategory(request.getParameter("category"));
                 news.setTargetAudience(request.getParameter("targetAudience"));
                 news.setNewsContent(request.getParameter("content"));
-                news.setTeacherID(201); // ID Guru contoh
+                
+                // Gunakan ID Guru yang dinamik dari Oracle
+                news.setTeacherID(loggedInTeacherID);
+                
                 news.setNewsDate(new Timestamp(System.currentTimeMillis()));
                 news.setPinned(request.getParameter("pinned") != null);
 
                 newsDAO.addNews(news);
 
-            // Teacher & Admin boleh Kemas Kini (Update)
-            } else if ("update".equals(action) && "Teacher".equals(userRole)) {
+            } else if ("update".equals(action) && ("Teacher".equals(userRole) || "Admin".equals(userRole))) {
                 News news = new News();
                 news.setNewsID(Integer.parseInt(request.getParameter("newsID")));
                 news.setNewsTitle(request.getParameter("title"));
                 news.setNewsCategory(request.getParameter("category"));
                 news.setTargetAudience(request.getParameter("targetAudience"));
                 news.setNewsContent(request.getParameter("content"));
-                news.setTeacherID(201);
+                
+                news.setTeacherID(loggedInTeacherID);
                 news.setPinned(request.getParameter("pinned") != null);
 
                 newsDAO.updateNews(news);
 
-            // HANYA ADMIN BOLEH PADAM (Delete) - Teacher TIDAK BOLEH padam
             } else if ("delete".equals(action) && "Admin".equals(userRole)) {
                 int newsID = Integer.parseInt(request.getParameter("newsID"));
                 newsDAO.deleteNews(newsID);
@@ -86,7 +96,6 @@ public class NewsServlet extends HttpServlet {
         }
     }
 
-    // Fungsi utiliti untuk menjana ID baharu secara manual jika tiada sequence auto
     private int getNextNewsId() {
         try {
             List<News> all = newsDAO.getAllNews();

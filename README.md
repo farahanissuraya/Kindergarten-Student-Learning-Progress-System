@@ -43,4 +43,4 @@ The system database runs on **Oracle DBMS** and consists of 11 normalized tables
 
 ## 👤 Author
 
-* **Farahanis Suraya Binti Ahmad Kamal** - *Information System Engineering*
+* **Farahanis Suraya Binti Ahmad Kamal** - *Final year student of Information System Engineering in UiTM Jasin, Melaka, Malaysia*

@@ -1,4 +1,4 @@
-# 🎓 Keedflix Centre - Kindergarten Student Learning Progress & Weekly Achievement Tracking System
+# 🎓 Kindergarten Student Learning Progress System for Keedflix Centre
 
 > A web-based management and progress tracking system designed for **Keedflix Centre** to streamline student enrollment, track weekly learning progress, and facilitate parent-teacher interaction.
 

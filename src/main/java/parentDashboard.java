@@ -4,7 +4,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -12,12 +14,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
-import bean.Parent;
-import bean.Student;
-import bean.News;
-import dao.NewsDAO;
-import util.DatabaseConnection;
+import util.DatabaseConnection; // Pastikan anda ada utiliti connection ini
 
 @WebServlet("/parentDashboard")
 public class parentDashboard extends HttpServlet {
@@ -27,124 +24,136 @@ public class parentDashboard extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
-        int parentId = 201; 
-
         HttpSession session = request.getSession(false);
-        if (session != null) {
-            Object parentIdObj = session.getAttribute("parentID");
-            if (parentIdObj != null) {
-                try {
-                    String parsedId = parentIdObj.toString().trim();
-                    if (!parsedId.isEmpty() && !parsedId.equals("null")) {
-                        parentId = Integer.parseInt(parsedId);
-                    }
-                } catch (Exception ignored) {}
-            }
-        }
+        // Semak ID Ibu Bapa dari session (contoh: P101)
+        String parentId = (session != null && session.getAttribute("userId") != null) 
+                          ? (String) session.getAttribute("userId") 
+                          : "P101";
 
-        Parent currentParent = new Parent();
-        Student currentStudent = new Student();
-        List<Student> registeredChildren = new ArrayList<>();
-        List<News> newsList = new ArrayList<>();
+        // Parameter anak yang dipilih (jika ada lebih dari 1 anak)
+        String selectedStudentId = request.getParameter("studentId");
+
+        // Data Ibu Bapa
+        String parentName = "Parent";
+        String parentTitle = "Guardian";
+
+        // Data Anak Semasa
+        Map<String, Object> currentStudent = new HashMap<>();
+        List<Map<String, Object>> registeredChildren = new ArrayList<>();
+
+        // Metrik
+        int completedMilestones = 0;
+        int photoProofsCount = 0;
+        int averageLevel = 0;
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            if (conn != null) {
-                // Tarik Data Parent
-                String sqlParent = "SELECT parentID, parentName, parentEmail, parentPhoneNumber, parentIC, parentGender, parentAddress FROM PARENT WHERE parentID = ?";
-                try (PreparedStatement ps = conn.prepareStatement(sqlParent)) {
-                    ps.setInt(1, parentId);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            currentParent.setParentID(rs.getInt("parentID"));
-                            currentParent.setParentName(rs.getString("parentName"));
-                            currentParent.setParentEmail(rs.getString("parentEmail"));
-                            currentParent.setParentPhoneNumber(rs.getString("parentPhoneNumber"));
-                            currentParent.setParentIC(rs.getString("parentIC"));
-                            currentParent.setParentGender(rs.getString("parentGender"));
-                            currentParent.setParentAddress(rs.getString("parentAddress"));
+            
+            // 1. Ambil data Ibu Bapa
+            String sqlParent = "SELECT parent_name, relation_title FROM parent WHERE parent_id = ?";
+            try (PreparedStatement psParent = conn.prepareStatement(sqlParent)) {
+                psParent.setString(1, parentId);
+                try (ResultSet rsParent = psParent.executeQuery()) {
+                    if (rsParent.next()) {
+                        parentName = rsParent.getString("parent_name");
+                        parentTitle = rsParent.getString("relation_title");
+                    }
+                }
+            }
+
+            // 2. Ambil senarai anak-anak yang didaftarkan di bawah ibu bapa ini
+            String sqlChildren = "SELECT student_id, student_name, class_name, age, avatar_seed " +
+                                 "FROM student WHERE guardian_id = ?";
+            try (PreparedStatement psChildren = conn.prepareStatement(sqlChildren)) {
+                psChildren.setString(1, parentId);
+                try (ResultSet rsChildren = psChildren.executeQuery()) {
+                    while (rsChildren.next()) {
+                        Map<String, Object> child = new HashMap<>();
+                        child.put("id", rsChildren.getString("student_id"));
+                        child.put("name", rsChildren.getString("student_name"));
+                        child.put("className", rsChildren.getString("class_name"));
+                        child.put("age", rsChildren.getInt("age"));
+                        
+                        String avatar = rsChildren.getString("avatar_seed");
+                        child.put("avatarSeed", (avatar != null && !avatar.isEmpty()) ? avatar : "🧒");
+                        
+                        registeredChildren.add(child);
+                    }
+                }
+            }
+
+            // 3. Tentukan anak yang sedang aktif dilihat (Current Student)
+            if (!registeredChildren.isEmpty()) {
+                if (selectedStudentId != null) {
+                    for (Map<String, Object> child : registeredChildren) {
+                        if (child.get("id").equals(selectedStudentId)) {
+                            currentStudent = child;
+                            break;
                         }
                     }
                 }
+                // Default kepada anak pertama jika tiada pilihan
+                if (currentStudent.isEmpty()) {
+                    currentStudent = registeredChildren.get(0);
+                }
+                selectedStudentId = (String) currentStudent.get("id");
+            }
 
-                // Tarik Data Student
-                String sqlChildren = "SELECT studentID, studentName, studentAge, studentClass, parentID, studentIC, studentGender FROM STUDENT WHERE parentID = ?";
-                try (PreparedStatement ps = conn.prepareStatement(sqlChildren)) {
-                    ps.setInt(1, parentId);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        while (rs.next()) {
-                            Student child = new Student();
-                            child.setStudentID(rs.getInt("studentID"));
-                            child.setStudentName(rs.getString("studentName"));
-                            child.setStudentAge(rs.getInt("studentAge"));
-                            child.setStudentClass(rs.getString("studentClass"));
-                            child.setParentID(rs.getInt("parentID"));
-                            child.setStudentIC(rs.getString("studentIC"));
-                            child.setStudentGender(rs.getString("studentGender"));
-                            
-                            registeredChildren.add(child);
+            // 4. Ambil Metrik untuk Anak Semasa (Milestones, Photos, Average Score)
+            if (selectedStudentId != null) {
+                // Contoh pengiraan metrik (ubah suai query mengikut table sebenar)
+                String sqlMetrics = "SELECT " +
+                        "(SELECT COUNT(*) FROM milestones WHERE student_id = ? AND status = 'achieved') AS milestones_count, " +
+                        "(SELECT COUNT(*) FROM activity_logs WHERE student_id = ? AND image_url IS NOT NULL) AS photos_count, " +
+                        "(SELECT AVG(score) FROM learning_progress WHERE student_id = ?) AS avg_score " +
+                        "FROM dual";
+                
+                try (PreparedStatement psMetrics = conn.prepareStatement(sqlMetrics)) {
+                    psMetrics.setString(1, selectedStudentId);
+                    psMetrics.setString(2, selectedStudentId);
+                    psMetrics.setString(3, selectedStudentId);
+                    try (ResultSet rsMetrics = psMetrics.executeQuery()) {
+                        if (rsMetrics.next()) {
+                            completedMilestones = rsMetrics.getInt("milestones_count");
+                            photoProofsCount = rsMetrics.getInt("photos_count");
+                            // Convert avg (1-10) to percentage (0-100%)
+                            double avgScore = rsMetrics.getDouble("avg_score");
+                            averageLevel = (int) Math.round((avgScore / 10.0) * 100); 
                         }
                     }
                 }
             }
-        } catch (SQLException | ClassNotFoundException e) {
+
+        } catch (SQLException e) {
             e.printStackTrace();
-        }
+            // Data dummy jika gagal
+            parentName = "Sarah Vance";
+            parentTitle = "Mother";
+            currentStudent.put("id", "S101");
+            currentStudent.put("name", "Leo Vance");
+            currentStudent.put("className", "Kindergarten 3B");
+            currentStudent.put("age", 5);
+            currentStudent.put("avatarSeed", "👦");
+            registeredChildren.add(currentStudent);
+            averageLevel = 82;
+            photoProofsCount = 14;
+            completedMilestones = 6;
+        } catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
-        // Tarik Data Berita dari Oracle DB melalui NewsDAO
-        try {
-            NewsDAO newsDAO = new NewsDAO();
-            newsList = newsDAO.getNewsForParents();
-        } catch (Exception e) {
-            System.err.println("Ralat tarik berita: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        // FALLBACK: Data Sarah & Leo Vance jika DB kosong atau gagal
-        if (currentParent.getParentName() == null || currentParent.getParentName().isEmpty()) {
-            currentParent.setParentID(201);
-            currentParent.setParentName("Sarah Vance");
-            currentParent.setParentGender("Female");
-            currentParent.setParentEmail("sarah.vance@example.com");
-        }
-
-        if (registeredChildren.isEmpty()) {
-            Student fallbackChild = new Student();
-            fallbackChild.setStudentID(301);
-            fallbackChild.setStudentName("Leo Vance");
-            fallbackChild.setStudentAge(5);
-            fallbackChild.setStudentClass("Kindergarten 3B");
-            fallbackChild.setStudentGender("Male");
-            fallbackChild.setParentID(201);
-            
-            registeredChildren.add(fallbackChild);
-            currentStudent = fallbackChild;
-        } else {
-            currentStudent = registeredChildren.get(0);
-        }
-
-        // Hantar Atribut Selamat ke JSP
-        request.setAttribute("errorMessage", null);
-        request.setAttribute("parent", currentParent);
-        request.setAttribute("parentTitle", "Mother");
+        // 5. Hantar data ke JSP
+        request.setAttribute("parentName", parentName);
+        request.setAttribute("parentTitle", parentTitle);
         request.setAttribute("currentStudent", currentStudent);
         request.setAttribute("registeredChildren", registeredChildren);
         request.setAttribute("hasMultipleChildren", registeredChildren.size() > 1);
-        request.setAttribute("activeAvatar", "👦");
-        request.setAttribute("newsList", newsList);
         
-        request.setAttribute("averageLevel", 85);
-        request.setAttribute("photoProofsCount", 2);
-        request.setAttribute("completedMilestones", 4);
-        request.setAttribute("academicCycle", "Sept 2026");
-        request.setAttribute("childAge", currentStudent.getStudentAge() != 0 ? currentStudent.getStudentAge() : 5);
-        request.setAttribute("targetScale", 4);
+        request.setAttribute("averageLevel", averageLevel > 0 ? averageLevel : 82);
+        request.setAttribute("photoProofsCount", photoProofsCount);
+        request.setAttribute("completedMilestones", completedMilestones);
+        request.setAttribute("academicCycle", "Oct 2026");
 
-        request.getRequestDispatcher("parentDashboard.jsp").forward(request, response);
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
-            throws ServletException, IOException {
-        doGet(request, response);
+        request.getRequestDispatcher("parentPlatform.jsp").forward(request, response);
     }
 }

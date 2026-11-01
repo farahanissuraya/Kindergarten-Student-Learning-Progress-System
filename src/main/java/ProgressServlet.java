@@ -1,144 +1,98 @@
 import bean.LearningProgress;
 import bean.Student;
 import dao.LearningProgressDAO;
-import util.DatabaseConnection;
+import dao.StudentDAO;
 
+import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
-import java.io.IOException;
-import java.sql.*;
-import java.util.ArrayList;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.ArrayList;
 
-@WebServlet("/learningProgress")
+@WebServlet("/ProgressServlet")
 public class ProgressServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    
+    private LearningProgressDAO progressDAO;
+    private StudentDAO studentDAO;
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
-            throws ServletException, IOException {
-        
-        HttpSession session = request.getSession(false);
-        String userRole = "Teacher";
-        if (session != null && session.getAttribute("userRole") != null) {
-            userRole = session.getAttribute("userRole").toString();
-        }
-
-        int studentId = 301;
-        String reqStudentId = request.getParameter("studentId");
-        if (reqStudentId != null && !reqStudentId.trim().isEmpty()) {
-            try { studentId = Integer.parseInt(reqStudentId); } catch (NumberFormatException ignored) {}
-        }
-
-        Student currentStudent = new Student();
-        List<Student> classStudents = new ArrayList<>();
-        
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            if (conn != null) {
-                // 1. Tarik Data Pelajar Utama
-                String sqlStudent = "SELECT s.*, c.className FROM STUDENT s LEFT JOIN CLASS c ON s.classID = c.classID WHERE s.studentID = ?";
-                try (PreparedStatement ps = conn.prepareStatement(sqlStudent)) {
-                    ps.setInt(1, studentId);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            currentStudent.setStudentID(rs.getInt("studentID"));
-                            currentStudent.setStudentName(rs.getString("studentName"));
-                            currentStudent.setStudentAge(rs.getInt("studentAge"));
-                            currentStudent.setStudentClass(rs.getString("className"));
-                        }
-                    }
-                }
-
-                // 2. Tarik Senarai Pelajar
-                String sqlClass = "SELECT s.studentID, s.studentName, c.className FROM STUDENT s LEFT JOIN CLASS c ON s.classID = c.classID";
-                try (PreparedStatement ps = conn.prepareStatement(sqlClass);
-                     ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        Student st = new Student();
-                        st.setStudentID(rs.getInt("studentID"));
-                        st.setStudentName(rs.getString("studentName"));
-                        st.setStudentClass(rs.getString("className"));
-                        classStudents.add(st);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Fallback jika pangkalan data belum mempunyai data murid
-        if (currentStudent.getStudentName() == null) {
-            currentStudent.setStudentID(301);
-            currentStudent.setStudentName("Leo Vance");
-            currentStudent.setStudentAge(5);
-            currentStudent.setStudentClass("Kindergarten 3B");
-            classStudents.add(currentStudent);
-        }
-
-        // 3. Tarik Rekod Kemajuan melalui DAO
-        LearningProgressDAO dao = new LearningProgressDAO();
-        List<LearningProgress> progressList = dao.getProgressByStudentId(currentStudent.getStudentID());
-
-        request.setAttribute("userRole", userRole);
-        request.setAttribute("student", currentStudent);
-        request.setAttribute("classStudents", classStudents);
-        request.setAttribute("progressList", progressList);
-
-        request.getRequestDispatcher("learningProgress.jsp").forward(request, response);
+    public void init() {
+        progressDAO = new LearningProgressDAO();
+        studentDAO = new StudentDAO();
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
-            throws ServletException, IOException {
-        
-        String action = request.getParameter("action");
-        LearningProgressDAO dao = new LearningProgressDAO();
-
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            if ("create".equals(action) || "update".equals(action)) {
+            List<Student> allStudents = studentDAO.getAllStudents();
+            Student currentStudent = null;
+            int studentId = 0;
+
+            String studentIdStr = request.getParameter("studentID");
+            
+            if (studentIdStr != null && !studentIdStr.isEmpty()) {
+                studentId = Integer.parseInt(studentIdStr);
+                currentStudent = studentDAO.getStudentById(studentId);
+            } 
+            
+            // Jika tiada studentID diberikan atau murid tidak wujud, 
+            // tetapi senarai murid ada, ambil murid pertama dalam senarai secara automatik
+            if (currentStudent == null && !allStudents.isEmpty()) {
+                currentStudent = allStudents.get(0);
+                studentId = currentStudent.getStudentID();
+            }
+
+            List<LearningProgress> progressList = new ArrayList<>();
+            if (currentStudent != null) {
+                progressList = progressDAO.getProgressByStudentId(studentId);
+            }
+
+            request.setAttribute("currentStudent", currentStudent);
+            request.setAttribute("studentList", allStudents);
+            request.setAttribute("progressList", progressList);
+            request.setAttribute("activeTab", "progress");
+
+            request.getRequestDispatcher("learningProgress.jsp").forward(request, response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Ralat memuatkan data kemajuan.");
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+        String studentIdStr = request.getParameter("studentID");
+        
+        try {
+            if ("add".equals(action)) {
                 LearningProgress lp = new LearningProgress();
-                int studentId = Integer.parseInt(request.getParameter("studentID"));
-                lp.setStudentID(studentId);
-                
-                String domain = request.getParameter("domainName");
-                int learningId = "Writing".equals(domain) ? 2 : "Counting".equals(domain) ? 3 : 1;
-                lp.setLearningID(learningId);
+                // setProgressID dijana oleh DAO/Oracle sequence
+                lp.setStudentID(Integer.parseInt(studentIdStr));
+                lp.setLearningID(Integer.parseInt(request.getParameter("learningID")));
                 lp.setProgressName(request.getParameter("progressName"));
                 lp.setProgressPercentage(Double.parseDouble(request.getParameter("progressPercentage")));
                 lp.setProgressStatus(request.getParameter("progressStatus"));
-                lp.setNotes(request.getParameter("notes"));
+                lp.setTeacherID(201); // ID Guru contoh
+                // progressDate menggunakan SYSDATE di dalam DAO
                 
-                String scaleStr = request.getParameter("ratingScale");
-                lp.setRatingScale(scaleStr != null && !scaleStr.isEmpty() ? Integer.parseInt(scaleStr) : 5);
-                lp.setHomeRecommendation(request.getParameter("homeRecommendation"));
-
-                String dateStr = request.getParameter("progressDate");
-                if (dateStr == null || dateStr.trim().isEmpty()) {
-                    dateStr = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
-                }
-                lp.setProgressDate(dateStr);
-                lp.setTeacherID(201);
-
-                if ("create".equals(action)) {
-                    dao.addProgress(lp);
-                } else {
-                    lp.setProgressID(Integer.parseInt(request.getParameter("progressID")));
-                    dao.updateProgress(lp);
-                }
-                response.sendRedirect(request.getContextPath() + "/learningProgress?studentId=" + studentId);
-                return;
-
+                progressDAO.addLearningProgress(lp);
+                
             } else if ("delete".equals(action)) {
                 int progressId = Integer.parseInt(request.getParameter("progressID"));
-                int studentId = Integer.parseInt(request.getParameter("studentID"));
-                dao.deleteProgress(progressId);
-                response.sendRedirect(request.getContextPath() + "/learningProgress?studentId=" + studentId);
-                return;
+                progressDAO.deleteLearningProgress(progressId);
             }
+
+            response.sendRedirect("ProgressServlet?studentID=" + studentIdStr);
+
         } catch (Exception e) {
             e.printStackTrace();
+            response.sendRedirect("ProgressServlet?studentID=" + studentIdStr + "&error=true");
         }
-        doGet(request, response);
     }
 }

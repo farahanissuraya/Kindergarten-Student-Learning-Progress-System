@@ -81,7 +81,8 @@ public class LoginServlet extends HttpServlet {
                     session.setAttribute("parentEmail", parentEmail);
                     session.setAttribute("parentPhoneNumber", parentPhoneNumber);
 
-                    response.sendRedirect("parentDashboard.jsp");
+                    // Hantar terus ke URL Servlet /parentDashboard
+                    response.sendRedirect(request.getContextPath() + "/parentDashboard");
                     
                 } else {
                     // ✅ Hantar semula role "Parent" dan e-mel jika log masuk gagal

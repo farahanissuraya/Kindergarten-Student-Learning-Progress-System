@@ -3,130 +3,113 @@ package dao;
 import bean.LearningProgress;
 import util.DatabaseConnection;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class LearningProgressDAO {
 
-    // ==========================================
-    // KOD ASAL ANDA (DIKEKALKAN)
-    // ==========================================
-
-    public boolean addLearningProgress(LearningProgress progress) throws Exception {
-        String sql = "INSERT INTO LearningProgress (progressID, learningID, studentID, progressName, progressPercentage, progressStatus, teacherID) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setInt(1, progress.getProgressID());
-            pstmt.setInt(2, progress.getLearningID());
-            pstmt.setInt(3, progress.getStudentID());
-            pstmt.setString(4, progress.getProgressName());
-            pstmt.setDouble(5, progress.getProgressPercentage());
-            pstmt.setString(6, progress.getProgressStatus());
-            pstmt.setInt(7, progress.getTeacherID());
-            
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public List<LearningProgress> getProgressByStudentId(int studentID) throws Exception {
+    // 1. TARIK REKOD KEMAJUAN BERDASARKAN studentID
+    public List<LearningProgress> getProgressByStudentId(int studentId) {
         List<LearningProgress> list = new ArrayList<>();
-        String sql = "SELECT * FROM LearningProgress WHERE studentID = ?";
+        String sql = "SELECT lp.progressID, lp.learningID, lp.studentID, lp.progressName, " +
+                     "TO_CHAR(lp.progressDate, 'YYYY-MM-DD') AS formattedDate, " +
+                     "lp.progressPercentage, lp.progressStatus, lp.teacherID, " +
+                     "l.learningName AS domainName " +
+                     "FROM LEARNINGPROGRESS lp " +
+                     "JOIN LEARNING l ON lp.learningID = l.learningID " +
+                     "WHERE lp.studentID = ? " +
+                     "ORDER BY lp.progressDate DESC, lp.progressID DESC";
+
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            pstmt.setInt(1, studentID);
-            ResultSet rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                LearningProgress progress = new LearningProgress();
-                progress.setProgressID(rs.getInt("progressID"));
-                progress.setLearningID(rs.getInt("learningID"));
-                progress.setStudentID(rs.getInt("studentID"));
-                progress.setProgressName(rs.getString("progressName"));
-                progress.setProgressDate(rs.getString("progressDate"));
-                progress.setProgressPercentage(rs.getDouble("progressPercentage"));
-                progress.setProgressStatus(rs.getString("progressStatus"));
-                progress.setTeacherID(rs.getInt("teacherID"));
-                list.add(progress);
+            ps.setInt(1, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    LearningProgress lp = new LearningProgress();
+                    lp.setProgressID(rs.getInt("progressID"));
+                    lp.setLearningID(rs.getInt("learningID"));
+                    lp.setStudentID(rs.getInt("studentID"));
+                    lp.setProgressName(rs.getString("progressName"));
+                    lp.setProgressDate(rs.getString("formattedDate"));
+                    lp.setProgressPercentage(rs.getDouble("progressPercentage"));
+                    lp.setProgressStatus(rs.getString("progressStatus"));
+                    lp.setTeacherID(rs.getInt("teacherID"));
+                    lp.setDomainName(rs.getString("domainName"));
+                    
+                    list.add(lp);
+                }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            System.err.println("Ralat SQL semasa mengambil rekod kemajuan: " + e.getMessage());
             e.printStackTrace();
         }
         return list;
     }
 
-    public boolean updateLearningProgress(LearningProgress progress) throws Exception {
-        String sql = "UPDATE LearningProgress SET progressName = ?, progressPercentage = ?, progressStatus = ?, teacherID = ? WHERE progressID = ?";
+    // 2. TAMBAH REKOD KEMAJUAN BAHARU (CREATE)
+    public boolean addProgress(LearningProgress lp) {
+        String sql = "INSERT INTO LEARNINGPROGRESS (progressID, learningID, studentID, progressName, progressDate, progressPercentage, progressStatus, teacherID) " +
+                     "VALUES (seq_progress_id.NEXTVAL, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, progress.getProgressName());
-            pstmt.setDouble(2, progress.getProgressPercentage());
-            pstmt.setString(3, progress.getProgressStatus());
-            pstmt.setInt(4, progress.getTeacherID());
-            pstmt.setInt(5, progress.getProgressID());
+            ps.setInt(1, lp.getLearningID());
+            ps.setInt(2, lp.getStudentID());
+            ps.setString(3, lp.getProgressName());
             
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
+            // Tarikh lalai jika kosong
+            String dateStr = (lp.getProgressDate() != null && !lp.getProgressDate().trim().isEmpty()) 
+                             ? lp.getProgressDate() 
+                             : new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+            ps.setString(4, dateStr);
+            
+            ps.setDouble(5, lp.getProgressPercentage());
+            ps.setString(6, lp.getProgressStatus());
+            ps.setInt(7, lp.getTeacherID());
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.err.println("Ralat SQL semasa tambah rekod kemajuan: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
     }
 
-    public boolean deleteLearningProgress(int progressID) throws Exception {
-        String sql = "DELETE FROM LearningProgress WHERE progressID = ?";
+    // 3. KEMAS KINI REKOD KEMAJUAN (UPDATE)
+    public boolean updateProgress(LearningProgress lp) {
+        String sql = "UPDATE LEARNINGPROGRESS SET learningID = ?, progressName = ?, progressDate = TO_DATE(?, 'YYYY-MM-DD'), progressPercentage = ?, progressStatus = ? WHERE progressID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            pstmt.setInt(1, progressID);
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
+            ps.setInt(1, lp.getLearningID());
+            ps.setString(2, lp.getProgressName());
+            ps.setString(3, lp.getProgressDate());
+            ps.setDouble(4, lp.getProgressPercentage());
+            ps.setString(5, lp.getProgressStatus());
+            ps.setInt(6, lp.getProgressID());
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.err.println("Ralat SQL semasa kemas kini rekod kemajuan: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
     }
 
-    // ==========================================
-    // KOD TAMBAHAN UNTUK STUDENT DIRECTORY
-    // ==========================================
-
-    public Map<Integer, Double> getAvgProgressMap() throws Exception {
-        Map<Integer, Double> progressMap = new HashMap<>();
-        String sql = "SELECT studentID, NVL(AVG(progressPercentage), 0) AS avgProgress FROM LearningProgress GROUP BY studentID";
+    // 4. PADAM REKOD KEMAJUAN (DELETE)
+    public boolean deleteProgress(int progressId) {
+        String sql = "DELETE FROM LEARNINGPROGRESS WHERE progressID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            while (rs.next()) {
-                progressMap.put(rs.getInt("studentID"), Math.round(rs.getDouble("avgProgress") * 10.0) / 10.0);
-            }
+            ps.setInt(1, progressId);
+            return ps.executeUpdate() > 0;
         } catch (Exception e) {
+            System.err.println("Ralat SQL semasa padam rekod kemajuan: " + e.getMessage());
             e.printStackTrace();
         }
-        return progressMap;
-    }
-
-    public int getTotalLogsCount() {
-        String sql = "SELECT COUNT(*) FROM LearningProgress";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
+        return false;
     }
 }

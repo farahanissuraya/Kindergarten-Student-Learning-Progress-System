@@ -12,7 +12,13 @@ public class LearningProgress implements Serializable {
     private String progressDate; // Boleh guna String atau java.util.Date / java.sql.Date
     private double progressPercentage;
     private String progressStatus;
+    private String domainName;
     private int teacherID;
+    
+    private String notes;
+    private int ratingScale;
+    private String assessorName;
+    private String homeRecommendation;
 
     public LearningProgress() {
     }
@@ -72,6 +78,14 @@ public class LearningProgress implements Serializable {
     public void setProgressStatus(String progressStatus) {
         this.progressStatus = progressStatus;
     }
+    
+    public String getDomainName() {
+        return domainName;
+    }
+
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
+    }
 
     public int getTeacherID() {
         return teacherID;
@@ -80,4 +94,16 @@ public class LearningProgress implements Serializable {
     public void setTeacherID(int teacherID) {
         this.teacherID = teacherID;
     }
+    
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
+    public int getRatingScale() { return ratingScale; }
+    public void setRatingScale(int ratingScale) { this.ratingScale = ratingScale; }
+
+    public String getAssessorName() { return assessorName; }
+    public void setAssessorName(String assessorName) { this.assessorName = assessorName; }
+
+    public String getHomeRecommendation() { return homeRecommendation; }
+    public void setHomeRecommendation(String homeRecommendation) { this.homeRecommendation = homeRecommendation; }
 }

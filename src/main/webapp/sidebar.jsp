@@ -171,11 +171,11 @@
     <!-- Navigation Links -->
     <nav class="sidebar-nav">
         
-        <!-- Dashboard Link -->
-        <a href="${pageContext.request.contextPath}/DashboardServlet?tab=dashboard" 
-           class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
-            Dashboard
-        </a>
+        <<!-- Dashboard Link -->
+		<a href="${pageContext.request.contextPath}/parentDashboard"
+		   class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) || activeTab == null ? "btn-active" : "" %>">
+		    Dashboard
+		</a>
 
         <!-- Learning Progress -->
         <a href="${pageContext.request.contextPath}/ProgressServlet?tab=progress" 

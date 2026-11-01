@@ -13,6 +13,12 @@ public class LearningProgress implements Serializable {
     private double progressPercentage;
     private String progressStatus;
     private int teacherID;
+    
+    private String domainName;
+    private String notes;
+    private int ratingScale;
+    private String assessorName;
+    private String homeRecommendation;
 
     public LearningProgress() {
     }
@@ -80,4 +86,19 @@ public class LearningProgress implements Serializable {
     public void setTeacherID(int teacherID) {
         this.teacherID = teacherID;
     }
+    
+    public String getDomainName() { return domainName; }
+    public void setDomainName(String domainName) { this.domainName = domainName; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
+    public int getRatingScale() { return ratingScale; }
+    public void setRatingScale(int ratingScale) { this.ratingScale = ratingScale; }
+
+    public String getAssessorName() { return assessorName; }
+    public void setAssessorName(String assessorName) { this.assessorName = assessorName; }
+
+    public String getHomeRecommendation() { return homeRecommendation; }
+    public void setHomeRecommendation(String homeRecommendation) { this.homeRecommendation = homeRecommendation; }
 }

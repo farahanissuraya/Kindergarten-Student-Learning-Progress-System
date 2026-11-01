@@ -35,9 +35,9 @@ public class StudentDirectoryServlet extends HttpServlet {
             // Ambil data asing dari DAO masing-masing
             List<Student> studentList = studentDAO.getAllStudents();
             Map<Integer, Parent> parentMap = parentDAO.getAllParentsMap();
-            Map<Integer, Double> progressMap = progressDAO.getAvgProgressMap();
+          //  Map<Integer, Double> progressMap = progressDAO.getAvgProgressMap();
 
-            int totalLogs = progressDAO.getTotalLogsCount();
+           // int totalLogs = progressDAO.getTotalLogsCount();
             
             // Kira purata keseluruhan
             double totalProgressSum = 0;

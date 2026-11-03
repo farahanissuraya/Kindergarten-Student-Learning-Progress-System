@@ -254,9 +254,6 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <button type="button" class="nb-btn" onclick="openDiagramSpecsModal()">
-                            <span style="font-size: 0.9rem;">❓</span> Diagram Specs
-                        </button>
                         <button type="button" class="nb-btn" onclick="window.print()">
                             <span style="font-size: 0.9rem;">🖨️</span> Monthly Report
                         </button>
@@ -548,11 +545,13 @@
                     </div>
 
                     <!-- BUTTON AT BOTTOM RIGHT -->
-                    <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
-                        <button type="button" class="nb-btn" style="padding: 10px 24px; font-size: 0.9rem;" onclick="openCreateModal()">
-                            Create Progress
-                        </button>
-                    </div>
+					<div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+					    <a href="${pageContext.request.contextPath}/createProgress.jsp?studentId=${student != null ? student.studentID : 1}" 
+					       class="nb-btn" 
+					       style="padding: 10px 24px; font-size: 0.9rem;">
+					        Create Progress
+					    </a>
+					</div>
                 </div>
 
             </div>

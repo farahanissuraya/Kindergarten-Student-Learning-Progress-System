@@ -18,6 +18,8 @@ public class ProgressServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+    	
+    	request.setAttribute("activeTab", "progress");
         
         HttpSession session = request.getSession(false);
         String userRole = "Teacher";

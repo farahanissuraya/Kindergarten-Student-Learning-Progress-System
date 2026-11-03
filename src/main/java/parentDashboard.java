@@ -154,6 +154,6 @@ public class parentDashboard extends HttpServlet {
         request.setAttribute("completedMilestones", completedMilestones);
         request.setAttribute("academicCycle", "Oct 2026");
 
-        request.getRequestDispatcher("parentPlatform.jsp").forward(request, response);
+        request.getRequestDispatcher("parentDashboard.jsp").forward(request, response);
     }
 }

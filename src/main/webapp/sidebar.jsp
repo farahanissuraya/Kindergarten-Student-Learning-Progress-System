@@ -171,47 +171,87 @@
     <!-- Navigation Links -->
     <nav class="sidebar-nav">
         
-        <!-- Dashboard Link -->
-        <a href="${pageContext.request.contextPath}/DashboardServlet?tab=dashboard" 
-           class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
-            Dashboard
-        </a>
-
-        <!-- Learning Progress -->
-        <a href="${pageContext.request.contextPath}/ProgressServlet?tab=progress" 
-           class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
-            Learning Progress
-        </a>
-
-        <!-- Student Directory (Admin Only) -->
         <% if (isAdmin) { %>
-            <a href="${pageContext.request.contextPath}/StudentDirectoryServlet?tab=directory" 
-               class="nav-btn <%= "directory".equals(activeTab) ? "btn-active" : "" %>">
-                Student Directory
-            </a>
-        <% } %>
-
-      <!-- Parent Directory (Admin Only) -->
-   <!--        <% if (isAdmin) { %>
-            <a href="${pageContext.request.contextPath}/ParentDirectoryServlet?tab=parents" 
-               class="nav-btn <%= "parents".equals(activeTab) ? "btn-active" : "" %>">
-                Parent Directory
-            </a>
-        <% } %> --> 
-
-        <!-- Weekly News -->
-        <a href="${pageContext.request.contextPath}/NewsServlet?tab=news" 
-           class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
-            News
-        </a>
-
-        <!-- Direct Message (Parent & Teacher Only) -->
-        <% if (!isAdmin) { %>
-            <a href="${pageContext.request.contextPath}/ChatServlet?tab=chat" 
-               class="nav-btn <%= "chat".equals(activeTab) ? "btn-active" : "" %>">
-                Direct Message
-            </a>
-        <% } %>
+	    <!-- Dashboard Link -->
+	    <a href="${pageContext.request.contextPath}/DashboardServlet" 
+	       class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
+	        Dashboard
+	    </a>
+	
+	    <!-- Learning Progress -->
+	    <a href="${pageContext.request.contextPath}/ProgressServlet" 
+	       class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
+	        Learning Progress
+	    </a>
+	
+	    <!-- Student Directory -->
+	    <a href="${pageContext.request.contextPath}/StudentDirectoryServlet" 
+	       class="nav-btn <%= "directory".equals(activeTab) ? "btn-active" : "" %>">
+	        Student Directory
+	    </a>
+	
+	    <!-- Parent Directory -->
+	    <a href="${pageContext.request.contextPath}/ParentDirectoryServlet?tab=parents" 
+	       class="nav-btn <%= "parents".equals(activeTab) ? "btn-active" : "" %>">
+	        Parent Directory
+	    </a>
+	
+	    <!-- Weekly News -->
+	    <a href="${pageContext.request.contextPath}/NewsServlet" 
+	       class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
+	        News
+	    </a>
+	
+	<% } else if (isTeacher) { %>
+	    <!-- Dashboard Link -->
+	    <a href="${pageContext.request.contextPath}/DashboardServlet" 
+	       class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
+	        Dashboard
+	    </a>
+	
+	    <!-- Learning Progress -->
+	    <a href="${pageContext.request.contextPath}/ProgressServlet" 
+	       class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
+	        Learning Progress
+	    </a>
+	
+	    <!-- Weekly News -->
+	    <a href="${pageContext.request.contextPath}/NewsServlet" 
+	       class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
+	        News
+	    </a>
+	
+	    <!-- Direct Message -->
+	    <a href="${pageContext.request.contextPath}/ChatServlet" 
+	       class="nav-btn <%= "chat".equals(activeTab) ? "btn-active" : "" %>">
+	        Direct Message
+	    </a>
+	
+	<% } else { %>
+	    <!-- Dashboard Link -->
+	    <a href="${pageContext.request.contextPath}/DashboardServlet" 
+	       class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
+	        Dashboard
+	    </a>
+	
+	    <!-- Learning Progress -->
+	    <a href="${pageContext.request.contextPath}/ProgressServlet" 
+	       class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
+	        Learning Progress
+	    </a>
+	
+	    <!-- Weekly News -->
+	    <a href="${pageContext.request.contextPath}/NewsServlet" 
+	       class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
+	        News
+	    </a>
+	
+	    <!-- Direct Message -->
+	    <a href="${pageContext.request.contextPath}/ChatServlet" 
+	       class="nav-btn <%= "chat".equals(activeTab) ? "btn-active" : "" %>">
+	        Direct Message
+	    </a>
+	<% } %>
         
     </nav>
 

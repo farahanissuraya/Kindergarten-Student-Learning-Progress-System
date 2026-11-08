@@ -173,7 +173,7 @@
         
         <% if (isAdmin) { %>
 	    <!-- Dashboard Link -->
-	    <a href="${pageContext.request.contextPath}/DashboardServlet" 
+	    <a href="${pageContext.request.contextPath}/adminDashboard" 
 	       class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
 	        Dashboard
 	    </a>
@@ -204,7 +204,7 @@
 	
 	<% } else if (isTeacher) { %>
 	    <!-- Dashboard Link -->
-	    <a href="${pageContext.request.contextPath}/DashboardServlet" 
+	    <a href="${pageContext.request.contextPath}/teacherDashboard" 
 	       class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
 	        Dashboard
 	    </a>
@@ -229,7 +229,7 @@
 	
 	<% } else { %>
 	    <!-- Dashboard Link -->
-	    <a href="${pageContext.request.contextPath}/DashboardServlet" 
+	    <a href="${pageContext.request.contextPath}/parentDashboard" 
 	       class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
 	        Dashboard
 	    </a>

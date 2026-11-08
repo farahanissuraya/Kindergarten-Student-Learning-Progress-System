@@ -198,4 +198,61 @@ public class LearningProgressDAO {
         }
         return 0;
     }
+
+	 // ==========================================
+	 // DAPATKAN SKALA DOMAIN MURID DARI DATABASE
+	 // ==========================================
+    public int getDomainScale(int studentID, String domainName) {
+        int scale = 1; // Jika tiada rekod dalam DB, tetapkan ke Skala 1 (Tahap Asas/Emerging)
+        String sql = "SELECT NVL(lp.ratingScale, 1) AS ratingScale " +
+                     "FROM LEARNINGPROGRESS lp " +
+                     "LEFT JOIN LEARNING l ON lp.learningID = l.learningID " +
+                     "WHERE lp.studentID = ? AND (LOWER(l.learningName) LIKE ? OR LOWER(lp.progressName) LIKE ?) " +
+                     "ORDER BY lp.progressDate DESC, lp.progressID DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, studentID);
+            pstmt.setString(2, "%" + domainName.toLowerCase() + "%");
+            pstmt.setString(3, "%" + domainName.toLowerCase() + "%");
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    scale = rs.getInt("ratingScale");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Ralat getDomainScale: " + e.getMessage());
+        }
+        return scale;
+    }
+	
+	 // ==========================================
+	 // DAPATKAN PURATA KELAS DARI DATABASE (DYNAMIC)
+	 // ==========================================
+	 public double getClassAverageScale(String domainName) {
+	     double avgRadarValue = 0.0;
+	     String sql = "SELECT NVL(AVG(lp.ratingScale) * 2.0, 0.0) AS classAvgRadar " +
+	                  "FROM LEARNINGPROGRESS lp " +
+	                  "LEFT JOIN LEARNING l ON lp.learningID = l.learningID " +
+	                  "WHERE LOWER(l.learningName) LIKE ? OR LOWER(lp.progressName) LIKE ?";
+	
+	     try (Connection conn = DatabaseConnection.getConnection();
+	          PreparedStatement pstmt = conn.prepareStatement(sql)) {
+	
+	         pstmt.setString(1, "%" + domainName.toLowerCase() + "%");
+	         pstmt.setString(2, "%" + domainName.toLowerCase() + "%");
+	
+	         try (ResultSet rs = pstmt.executeQuery()) {
+	             if (rs.next()) {
+	                 avgRadarValue = Math.round(rs.getDouble("classAvgRadar") * 10.0) / 10.0;
+	             }
+	         }
+	     } catch (Exception e) {
+	         System.err.println("Ralat getClassAverageScale: " + e.getMessage());
+	         e.printStackTrace();
+	     }
+	     return avgRadarValue;
+	 }
 }

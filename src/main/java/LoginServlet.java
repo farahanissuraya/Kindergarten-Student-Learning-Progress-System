@@ -81,10 +81,10 @@ public class LoginServlet extends HttpServlet {
                     session.setAttribute("parentEmail", parentEmail);
                     session.setAttribute("parentPhoneNumber", parentPhoneNumber);
 
-                    response.sendRedirect("parentDashboard.jsp");
+                    // ✅ Dilencongkan terus ke Servlet 'parentDashboard' (bukan .jsp)
+                    response.sendRedirect("parentDashboard");
                     
                 } else {
-                    // ✅ Hantar semula role "Parent" dan e-mel jika log masuk gagal
                     redirectWithError(response, "E-mel atau kata laluan tidak sah.", "Parent", email);
                 }
             }
@@ -118,7 +118,6 @@ public class LoginServlet extends HttpServlet {
                     boolean isAdmin = wasNull || adminID == 0;
 
                     if ("Admin".equalsIgnoreCase(requestedRole) && !isAdmin) {
-                        // ✅ Hantar semula requestedRole dan e-mel jika tiada akses Admin
                         redirectWithError(response, "Akaun anda tidak mempunyai akses sebagai Admin.", requestedRole, email);
                         return;
                     }
@@ -134,15 +133,16 @@ public class LoginServlet extends HttpServlet {
                     if ("Admin".equalsIgnoreCase(requestedRole) && isAdmin) {
                         session.setAttribute("role", "Admin");
                         session.setAttribute("userRole", "Admin");
-                        response.sendRedirect("adminDashboard.jsp");
+                        // ℹ️ Jika Admin juga ada Servlet dashboard (cth: @WebServlet("/adminDashboard")), tukar kepada "adminDashboard"
+                        response.sendRedirect("adminDashboard");
                     } else {
                         session.setAttribute("role", "Teacher");
                         session.setAttribute("userRole", "Teacher");
-                        response.sendRedirect("teacherDashboard.jsp");
+                        // ℹ️ Jika Teacher juga ada Servlet dashboard (cth: @WebServlet("/teacherDashboard")), tukar kepada "teacherDashboard"
+                        response.sendRedirect("teacherDashboard");
                     }
 
                 } else {
-                    // ✅ Hantar semula requestedRole (Teacher/Admin) dan e-mel jika kata laluan salah
                     redirectWithError(response, "E-mel atau kata laluan tidak sah.", requestedRole, email);
                 }
             }
@@ -153,7 +153,6 @@ public class LoginServlet extends HttpServlet {
         }
     }
 
-    // Helper method untuk menghantar mesej ralat bersama role dan email
     private void redirectWithError(HttpServletResponse response, String errorMessage, String role, String email) throws IOException {
         String redirectUrl = "login.jsp?error=" + url(errorMessage) 
                 + "&role=" + url(role) 

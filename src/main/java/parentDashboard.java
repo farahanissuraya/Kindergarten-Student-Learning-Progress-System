@@ -125,18 +125,6 @@ public class parentDashboard extends HttpServlet {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            // Data dummy jika gagal
-            parentName = "Sarah Vance";
-            parentTitle = "Mother";
-            currentStudent.put("id", "S101");
-            currentStudent.put("name", "Leo Vance");
-            currentStudent.put("className", "Kindergarten 3B");
-            currentStudent.put("age", 5);
-            currentStudent.put("avatarSeed", "👦");
-            registeredChildren.add(currentStudent);
-            averageLevel = 82;
-            photoProofsCount = 14;
-            completedMilestones = 6;
         } catch (ClassNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

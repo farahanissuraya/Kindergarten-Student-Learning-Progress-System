@@ -147,4 +147,33 @@ public class StudentDAO {
         }
         return 0;
     }
+    
+    public List<Student> getStudentsByParentID(int parentID) throws Exception {
+        List<Student> list = new ArrayList<>();
+        String sql = "SELECT studentID, studentName, studentAge, studentClass FROM STUDENT WHERE parentID = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, parentID);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Student student = new Student();
+                    student.setStudentID(rs.getInt("studentID"));
+                    student.setStudentName(rs.getString("studentName"));
+                    student.setStudentAge(rs.getInt("studentAge"));
+                    student.setStudentClass(rs.getString("studentClass"));
+                    list.add(student);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        // Fallback jika jadual STUDENT belum mempunyai lajur parentID (tarik semua murid)
+        if (list.isEmpty()) {
+            return getAllStudents(); 
+        }
+        return list;
+    }
 }

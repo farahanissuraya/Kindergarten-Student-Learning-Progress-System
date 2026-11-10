@@ -138,6 +138,6 @@ public class teacherDashboard extends HttpServlet {
         request.setAttribute("totalObservations", totalObservations);
         request.setAttribute("totalMilestones", totalMilestones);
 
-        request.getRequestDispatcher("teacherPlatform.jsp").forward(request, response);
+        request.getRequestDispatcher("teacherDashboard.jsp").forward(request, response);
     }
 }

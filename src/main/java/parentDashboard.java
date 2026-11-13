@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,7 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import util.DatabaseConnection; // Pastikan anda ada utiliti connection ini
+import util.DatabaseConnection;
 
 @WebServlet("/parentDashboard")
 public class parentDashboard extends HttpServlet {
@@ -25,23 +24,27 @@ public class parentDashboard extends HttpServlet {
             throws ServletException, IOException {
         
         HttpSession session = request.getSession(false);
-        // Semak ID Ibu Bapa dari session (contoh: P101)
-        String parentId = (session != null && session.getAttribute("userId") != null) 
-                          ? (String) session.getAttribute("userId") 
-                          : "P101";
+        
+        if (session == null || session.getAttribute("parentID") == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
 
-        // Parameter anak yang dipilih (jika ada lebih dari 1 anak)
-        String selectedStudentId = request.getParameter("studentId");
-
-        // Data Ibu Bapa
-        String parentName = "Parent";
+        int parentID = (int) session.getAttribute("parentID");
+        String parentName = (String) session.getAttribute("parentName");
         String parentTitle = "Guardian";
 
-        // Data Anak Semasa
-        Map<String, Object> currentStudent = new HashMap<>();
-        List<Map<String, Object>> registeredChildren = new ArrayList<>();
+        String selectedStudentIdParam = request.getParameter("studentId");
+        int selectedStudentId = 0;
+        if (selectedStudentIdParam != null && !selectedStudentIdParam.isEmpty()) {
+            try {
+                selectedStudentId = Integer.parseInt(selectedStudentIdParam);
+            } catch (NumberFormatException ignored) {}
+        }
 
-        // Metrik
+        HashMap<String, Object> currentStudent = new HashMap<>();
+        List<HashMap<String, Object>> registeredChildren = new ArrayList<>();
+
         int completedMilestones = 0;
         int photoProofsCount = 0;
         int averageLevel = 0;
@@ -49,86 +52,77 @@ public class parentDashboard extends HttpServlet {
         try (Connection conn = DatabaseConnection.getConnection()) {
             
             // 1. Ambil data Ibu Bapa
-            String sqlParent = "SELECT parent_name, relation_title FROM parent WHERE parent_id = ?";
+            String sqlParent = "SELECT PARENTNAME FROM PARENT WHERE PARENTID = ?";
             try (PreparedStatement psParent = conn.prepareStatement(sqlParent)) {
-                psParent.setString(1, parentId);
+                psParent.setInt(1, parentID);
                 try (ResultSet rsParent = psParent.executeQuery()) {
                     if (rsParent.next()) {
-                        parentName = rsParent.getString("parent_name");
-                        parentTitle = rsParent.getString("relation_title");
+                        parentName = rsParent.getString("PARENTNAME");
                     }
                 }
             }
 
-            // 2. Ambil senarai anak-anak yang didaftarkan di bawah ibu bapa ini
-            String sqlChildren = "SELECT student_id, student_name, class_name, age, avatar_seed " +
-                                 "FROM student WHERE guardian_id = ?";
+            // 2. Ambil senarai anak di bawah PARENTID ini
+            String sqlChildren = "SELECT STUDENTID, STUDENTNAME, STUDENTCLASS, STUDENTAGE, STUDENTGENDER " +
+                                 "FROM STUDENT WHERE PARENTID = ? ORDER BY STUDENTID ASC";
             try (PreparedStatement psChildren = conn.prepareStatement(sqlChildren)) {
-                psChildren.setString(1, parentId);
+                psChildren.setInt(1, parentID);
                 try (ResultSet rsChildren = psChildren.executeQuery()) {
                     while (rsChildren.next()) {
-                        Map<String, Object> child = new HashMap<>();
-                        child.put("id", rsChildren.getString("student_id"));
-                        child.put("name", rsChildren.getString("student_name"));
-                        child.put("className", rsChildren.getString("class_name"));
-                        child.put("age", rsChildren.getInt("age"));
+                        HashMap<String, Object> child = new HashMap<>();
+                        int stId = rsChildren.getInt("STUDENTID");
+                        String gender = rsChildren.getString("STUDENTGENDER");
                         
-                        String avatar = rsChildren.getString("avatar_seed");
-                        child.put("avatarSeed", (avatar != null && !avatar.isEmpty()) ? avatar : "🧒");
+                        child.put("id", stId);
+                        child.put("name", rsChildren.getString("STUDENTNAME"));
+                        child.put("className", rsChildren.getString("STUDENTCLASS"));
+                        child.put("age", rsChildren.getInt("STUDENTAGE"));
+                        
+                        String avatar = ("Girl".equalsIgnoreCase(gender) || "Female".equalsIgnoreCase(gender)) ? "👧" : "👦";
+                        child.put("avatarSeed", avatar);
                         
                         registeredChildren.add(child);
                     }
                 }
             }
 
-            // 3. Tentukan anak yang sedang aktif dilihat (Current Student)
+            // 3. Tentukan anak aktif
             if (!registeredChildren.isEmpty()) {
-                if (selectedStudentId != null) {
-                    for (Map<String, Object> child : registeredChildren) {
-                        if (child.get("id").equals(selectedStudentId)) {
+                if (selectedStudentId > 0) {
+                    for (HashMap<String, Object> child : registeredChildren) {
+                        if ((int) child.get("id") == selectedStudentId) {
                             currentStudent = child;
                             break;
                         }
                     }
                 }
-                // Default kepada anak pertama jika tiada pilihan
                 if (currentStudent.isEmpty()) {
                     currentStudent = registeredChildren.get(0);
                 }
-                selectedStudentId = (String) currentStudent.get("id");
+                selectedStudentId = (int) currentStudent.get("id");
             }
 
-            // 4. Ambil Metrik untuk Anak Semasa (Milestones, Photos, Average Score)
-            if (selectedStudentId != null) {
-                // Contoh pengiraan metrik (ubah suai query mengikut table sebenar)
+            // 4. Ambil Metrik dari jadual LEARNINGPROGRESS
+            if (selectedStudentId > 0) {
                 String sqlMetrics = "SELECT " +
-                        "(SELECT COUNT(*) FROM milestones WHERE student_id = ? AND status = 'achieved') AS milestones_count, " +
-                        "(SELECT COUNT(*) FROM activity_logs WHERE student_id = ? AND image_url IS NOT NULL) AS photos_count, " +
-                        "(SELECT AVG(score) FROM learning_progress WHERE student_id = ?) AS avg_score " +
-                        "FROM dual";
+                        "COUNT(CASE WHEN PROGRESSSTATUS = 'Mastered' THEN 1 END) AS milestones_count, " +
+                        "NVL(AVG(PROGRESSPERCENTAGE), 0) AS avg_score " +
+                        "FROM LEARNINGPROGRESS WHERE STUDENTID = ?";
                 
                 try (PreparedStatement psMetrics = conn.prepareStatement(sqlMetrics)) {
-                    psMetrics.setString(1, selectedStudentId);
-                    psMetrics.setString(2, selectedStudentId);
-                    psMetrics.setString(3, selectedStudentId);
+                    psMetrics.setInt(1, selectedStudentId);
                     try (ResultSet rsMetrics = psMetrics.executeQuery()) {
                         if (rsMetrics.next()) {
                             completedMilestones = rsMetrics.getInt("milestones_count");
-                            photoProofsCount = rsMetrics.getInt("photos_count");
-                            // Convert avg (1-10) to percentage (0-100%)
-                            double avgScore = rsMetrics.getDouble("avg_score");
-                            averageLevel = (int) Math.round((avgScore / 10.0) * 100); 
+                            averageLevel = (int) Math.round(rsMetrics.getDouble("avg_score"));
                         }
                     }
                 }
             }
 
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
-        } catch (ClassNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+        }
 
         // 5. Hantar data ke JSP
         request.setAttribute("parentName", parentName);
@@ -137,7 +131,7 @@ public class parentDashboard extends HttpServlet {
         request.setAttribute("registeredChildren", registeredChildren);
         request.setAttribute("hasMultipleChildren", registeredChildren.size() > 1);
         
-        request.setAttribute("averageLevel", averageLevel > 0 ? averageLevel : 82);
+        request.setAttribute("averageLevel", averageLevel);
         request.setAttribute("photoProofsCount", photoProofsCount);
         request.setAttribute("completedMilestones", completedMilestones);
         request.setAttribute("academicCycle", "Oct 2026");

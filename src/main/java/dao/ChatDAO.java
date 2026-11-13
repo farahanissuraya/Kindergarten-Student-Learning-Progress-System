@@ -13,19 +13,24 @@ import java.util.List;
 public class ChatDAO {
 
     public boolean sendMessage(Chat chat) throws Exception {
-        String sql = "INSERT INTO Chat (chatID, parentID, teacherID, senderRole, messageContent, isRead) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Chat (chatID, parentID, teacherID, senderRole, messageContent, isRead) " +
+                     "VALUES ((SELECT NVL(MAX(chatID), 0) + 1 FROM Chat), ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setInt(1, chat.getChatID());
-            pstmt.setInt(2, chat.getParentID());
-            pstmt.setInt(3, chat.getTeacherID());
-            pstmt.setString(4, chat.getSenderRole());
-            pstmt.setString(5, chat.getMessageContent());
-            pstmt.setInt(6, chat.isRead() ? 1 : 0);
+            pstmt.setInt(1, chat.getParentID());
+            pstmt.setInt(2, chat.getTeacherID());
+            pstmt.setString(3, chat.getSenderRole());
+            pstmt.setString(4, chat.getMessageContent());
+            pstmt.setInt(5, chat.isRead() ? 1 : 0);
             
-            return pstmt.executeUpdate() > 0;
+            int rows = pstmt.executeUpdate();
+            if (rows > 0) {
+                conn.commit();
+            }
+            return rows > 0;
         } catch (SQLException e) {
+            System.err.println("SQL Error Code: " + e.getErrorCode() + " | Message: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -33,7 +38,8 @@ public class ChatDAO {
 
     public List<Chat> getChatHistory(int parentID, int teacherID) throws Exception {
         List<Chat> list = new ArrayList<>();
-        String sql = "SELECT * FROM Chat WHERE parentID = ? AND teacherID = ? ORDER BY sentDateTime ASC";
+        String sql = "SELECT chatID, parentID, teacherID, senderRole, messageContent, sentDateTime, isRead " +
+                     "FROM Chat WHERE parentID = ? AND teacherID = ? ORDER BY sentDateTime ASC, chatID ASC";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -64,7 +70,11 @@ public class ChatDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, chatID);
-            return pstmt.executeUpdate() > 0;
+            int rows = pstmt.executeUpdate();
+            if (rows > 0) {
+                conn.commit();
+            }
+            return rows > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }

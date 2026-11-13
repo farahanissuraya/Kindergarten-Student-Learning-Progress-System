@@ -1,18 +1,19 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="bean.Student"%>
 <%@ page import="bean.LearningProgress"%>
+<%@ page import="util.IconUtil"%>
 <%@ page import="java.util.List"%>
 <%@ page import="java.util.ArrayList"%>
 <%@ page import="java.util.Map"%>
 <%@ page import="java.util.HashMap"%>
-
 
 <!DOCTYPE html>
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learning Progress Manager - Keedflix Centre</title>
+    <title>Learning Progress Manager - Keedsflix Centre</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
     
     <style>
         /* ==========================================
@@ -86,7 +87,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
         }
         .nb-btn:hover { transform: translateY(-2px); background-color: #F8FAFC; }
         .nb-btn-yellow { background-color: #FFD02C; }
@@ -96,66 +97,28 @@
         .nb-btn-danger { background-color: #FFFFFF; color: #EF4444; border-color: #2D3436; }
         .nb-btn-danger:hover { background-color: #FEF2F2; color: #DC2626; }
 
-        .nb-icon-btn {
-            width: 36px; height: 36px;
-            border: 2px solid #2D3436;
-            border-radius: 12px;
-            background: #FFFFFF;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 2px 2px 0px 0px #2D3436;
-            transition: all 0.15s ease;
-        }
-        .nb-icon-btn:hover { transform: translateY(-2px); background-color: #F1F5F9; }
-
         /* BADGES & TAGS */
         .nb-badge-yellow {
             background: #FFD02C; border: 1.5px solid #2D3436;
             padding: 3px 10px; border-radius: 999px;
             font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;
+            display: inline-flex; align-items: center; gap: 4px;
         }
         .nb-badge-mint {
             background: #D1FAE5; color: #065F46; border: 1.5px solid #10B981;
             padding: 3px 12px; border-radius: 999px; font-size: 11px; font-weight: 900;
+            display: inline-flex; align-items: center; gap: 4px;
         }
         .nb-badge-gray {
             background: #F1F5F9; color: #475569; border: 1.5px solid #94A3B8;
             padding: 3px 12px; border-radius: 999px; font-size: 11px; font-weight: 900;
+            display: inline-flex; align-items: center; gap: 4px;
         }
 
-        .domain-tag {
-            font-size: 10px; font-weight: 900; padding: 3px 10px; border-radius: 6px;
-            border: 1px solid #2D3436; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;
+        .domain-pill {
+            font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 8px;
+            display: inline-flex; align-items: center; gap: 5px;
         }
-        .tag-reading { background: #F3E8FF; color: #7E22CE; }
-        .tag-writing { background: #FFE4E6; color: #E11D48; }
-        .tag-counting { background: #FEF3C7; color: #D97706; }
-
-        .status-pill {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 2px 10px; border-radius: 999px; border: 1.5px solid #2D3436;
-            font-size: 11px; font-weight: 800; background: #FFF;
-        }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        .dot-developing { background-color: #F59E0B; }
-        .dot-proficient { background-color: #6366F1; }
-        .dot-mastered { background-color: #10B981; }
-
-        .nb-filter-btn {
-            background: #FFFFFF; border: 2px solid #2D3436; border-radius: 999px;
-            padding: 5px 16px; font-weight: 800; font-size: 0.8rem; cursor: pointer;
-            box-shadow: 2px 2px 0px 0px #2D3436; transition: all 0.15s ease;
-        }
-        .nb-filter-btn.active { background: #2D3436; color: #FFFFFF; }
-
-        /* PROGRESS BAR */
-        .progress-track {
-            width: 100px; height: 10px; background-color: #E2E8F0;
-            border-radius: 999px; overflow: hidden; border: 1px solid #2D3436;
-        }
-        .progress-fill { height: 100%; background-color: #2D3436; border-radius: 999px; }
 
         /* TABLE STYLING */
         .nb-table-card {
@@ -214,7 +177,7 @@
                      CARD 1: CLASS & STUDENT NAME SELECTORS
                      ========================================================= -->
                 <div class="nb-card">
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
                         <div>
                             <label class="nb-label">Class</label>
                             <select class="nb-select" disabled>
@@ -252,7 +215,6 @@
                             Evaluate reading, writing, and early counting milestones in real time. Log observations, calibrate domain benchmarks, and generate progress reports.
                         </p>
                     </div>
-
                 </div>
 
                 <!-- =========================================================
@@ -292,7 +254,9 @@
                         
                         <!-- SECTION 1 HEADER: CURRENT RECORD -->
                         <div class="table-section-banner">
-                            <span>✨ REKOD TERKINI (CURRENT RECORD)</span>
+                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                <%= IconUtil.icon("Sparkles", "icon-sm") %> REKOD TERKINI (CURRENT RECORD)
+                            </span>
                             <span class="nb-badge-mint" style="font-size: 10px;">Tarikh Aktif: 2026-10-31</span>
                         </div>
 
@@ -311,21 +275,23 @@
                                         <div style="font-weight: 900; font-size: 1rem; color: #2D3436;">2026-10-31</div>
                                         <div style="font-size: 0.78rem; font-weight: 700; color: #64748B; margin-top: 2px;">31 Oktober 2026</div>
                                         <div style="margin-top: 8px;">
-                                            <span class="nb-badge-mint" style="font-size: 9px; padding: 2px 8px;">★ CURRENT RECORD</span>
+                                            <span class="nb-badge-mint" style="font-size: 9px; padding: 2px 8px;">
+                                                <%= IconUtil.icon("Star", "icon-xs") %> CURRENT RECORD
+                                            </span>
                                         </div>
                                     </td>
                                     <td style="vertical-align: top;">
                                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-                                            <span style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 8px;">
-                                                📊 Counting (Skala 4/5 · 88%)
+                                            <span class="domain-pill" style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D;">
+                                                <%= IconUtil.icon("BarChart3", "icon-xs") %> Counting (Skala 4/5 · 88%)
                                             </span>
-                                            <span style="background: #FFE4E6; color: #BE185D; border: 1px solid #FDA4AF; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 8px;">
-                                                ✏️ Writing (Skala 3/5 · 68%)
+                                            <span class="domain-pill" style="background: #FFE4E6; color: #BE185D; border: 1px solid #FDA4AF;">
+                                                <%= IconUtil.icon("PenTool", "icon-xs") %> Writing (Skala 3/5 · 68%)
                                             </span>
-                                            <span style="background: #F3E8FF; color: #7E22CE; border: 1px solid #D8B4FE; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 8px;">
-                                                📖 Reading (Skala 3/5 · 68%)
+                                            <span class="domain-pill" style="background: #F3E8FF; color: #7E22CE; border: 1px solid #D8B4FE;">
+                                                <%= IconUtil.icon("BookOpen", "icon-xs") %> Reading (Skala 3/5 · 68%)
                                             </span>
-                                            <span style="background: #2D3436; color: #FFF; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 999px;">
+                                            <span style="background: #2D3436; color: #FFF; font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 999px;">
                                                 Purata Skor: 67%
                                             </span>
                                         </div>
@@ -339,16 +305,24 @@
                                         </div>
 
                                         <div style="margin-top: 10px;">
-                                            <a href="#" style="color: #6366F1; font-weight: 900; font-size: 0.8rem; text-decoration: none;">
-                                                👁️ Tekan untuk buka laporan penuh di halaman baharu ➔
+                                            <a href="#" style="color: #6366F1; font-weight: 900; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                                <%= IconUtil.icon("Eye", "icon-xs") %>
+                                                <span>Tekan untuk buka laporan penuh di halaman baharu</span>
+                                                <%= IconUtil.icon("ArrowRight", "icon-xs") %>
                                             </a>
                                         </div>
                                     </td>
                                     <td style="vertical-align: top; text-align: center;">
                                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                                            <button type="button" class="nb-btn nb-btn-yellow" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">👁️ Buka Laporan</button>
-                                            <button type="button" class="nb-btn" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">✏️ Edit</button>
-                                            <button type="button" class="nb-btn nb-btn-danger" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">🗑️ Padam</button>
+                                            <button type="button" class="nb-btn nb-btn-yellow" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">
+                                                <%= IconUtil.icon("Eye", "icon-xs") %> Buka Laporan
+                                            </button>
+                                            <button type="button" class="nb-btn" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">
+                                                <%= IconUtil.icon("Edit2", "icon-xs") %> Edit
+                                            </button>
+                                            <button type="button" class="nb-btn nb-btn-danger" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">
+                                                <%= IconUtil.icon("Trash2", "icon-xs") %> Padam
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -357,7 +331,9 @@
 
                         <!-- SECTION 2 HEADER: PREVIOUS RECORDS -->
                         <div class="table-section-banner table-section-banner-gray">
-                            <span>🕒 REKOD-REKOD TERDAHULU (PREVIOUS RECORDS)</span>
+                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                <%= IconUtil.icon("Clock", "icon-sm") %> REKOD-REKOD TERDAHULU (PREVIOUS RECORDS)
+                            </span>
                             <span class="nb-badge-gray" style="font-size: 10px;">1 Rekod Terdahulu</span>
                         </div>
 
@@ -369,21 +345,23 @@
                                         <div style="font-weight: 900; font-size: 1rem; color: #2D3436;">2026-09-15</div>
                                         <div style="font-size: 0.78rem; font-weight: 700; color: #64748B; margin-top: 2px;">15 September 2026</div>
                                         <div style="margin-top: 8px;">
-                                            <span class="nb-badge-gray" style="font-size: 9px; padding: 2px 8px; background: #FEF3C7; color: #92400E; border-color: #FCD34D;">📜 PREVIOUS RECORD</span>
+                                            <span class="nb-badge-gray" style="font-size: 9px; padding: 2px 8px; background: #FEF3C7; color: #92400E; border-color: #FCD34D;">
+                                                <%= IconUtil.icon("History", "icon-xs") %> PREVIOUS RECORD
+                                            </span>
                                         </div>
                                     </td>
                                     <td style="width: 62%; vertical-align: top;">
                                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-                                            <span style="background: #F3E8FF; color: #7E22CE; border: 1px solid #D8B4FE; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 8px;">
-                                                📖 Reading (Skala 5/5 · 82%)
+                                            <span class="domain-pill" style="background: #F3E8FF; color: #7E22CE; border: 1px solid #D8B4FE;">
+                                                <%= IconUtil.icon("BookOpen", "icon-xs") %> Reading (Skala 5/5 · 82%)
                                             </span>
-                                            <span style="background: #FFE4E6; color: #BE185D; border: 1px solid #FDA4AF; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 8px;">
-                                                ✏️ Writing (Skala 5/5 · 78%)
+                                            <span class="domain-pill" style="background: #FFE4E6; color: #BE185D; border: 1px solid #FDA4AF;">
+                                                <%= IconUtil.icon("PenTool", "icon-xs") %> Writing (Skala 5/5 · 78%)
                                             </span>
-                                            <span style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 8px;">
-                                                📊 Counting (Skala 5/5 · 92%)
+                                            <span class="domain-pill" style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D;">
+                                                <%= IconUtil.icon("BarChart3", "icon-xs") %> Counting (Skala 5/5 · 92%)
                                             </span>
-                                            <span style="background: #2D3436; color: #FFF; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 999px;">
+                                            <span style="background: #2D3436; color: #FFF; font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 999px;">
                                                 Purata Skor: 81%
                                             </span>
                                         </div>
@@ -397,16 +375,24 @@
                                         </div>
 
                                         <div style="margin-top: 10px;">
-                                            <a href="#" style="color: #6366F1; font-weight: 900; font-size: 0.8rem; text-decoration: none;">
-                                                👁️ Tekan untuk buka laporan penuh di halaman baharu ➔
+                                            <a href="#" style="color: #6366F1; font-weight: 900; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                                <%= IconUtil.icon("Eye", "icon-xs") %>
+                                                <span>Tekan untuk buka laporan penuh di halaman baharu</span>
+                                                <%= IconUtil.icon("ArrowRight", "icon-xs") %>
                                             </a>
                                         </div>
                                     </td>
                                     <td style="width: 18%; vertical-align: top; text-align: center;">
                                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                                            <button type="button" class="nb-btn nb-btn-yellow" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">👁️ Buka Laporan</button>
-                                            <button type="button" class="nb-btn" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">✏️ Edit</button>
-                                            <button type="button" class="nb-btn nb-btn-danger" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">🗑️ Padam</button>
+                                            <button type="button" class="nb-btn nb-btn-yellow" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">
+                                                <%= IconUtil.icon("Eye", "icon-xs") %> Buka Laporan
+                                            </button>
+                                            <button type="button" class="nb-btn" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">
+                                                <%= IconUtil.icon("Edit2", "icon-xs") %> Edit
+                                            </button>
+                                            <button type="button" class="nb-btn nb-btn-danger" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">
+                                                <%= IconUtil.icon("Trash2", "icon-xs") %> Padam
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -415,13 +401,14 @@
                     </div>
 
                     <!-- BUTTON AT BOTTOM RIGHT -->
-					<div style="display: flex; justify-content: flex-end; margin-top: 16px;">
-					    <a href="${pageContext.request.contextPath}/createProgress.jsp?studentId=${student != null ? student.studentID : 1}" 
-					       class="nb-btn" 
-					       style="padding: 10px 24px; font-size: 0.9rem;">
-					        Create Progress
-					    </a>
-					</div>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                        <a href="${pageContext.request.contextPath}/createProgress.jsp?studentId=${student != null ? student.studentID : 1}" 
+                           class="nb-btn nb-btn-yellow" 
+                           style="padding: 10px 24px; font-size: 0.9rem;">
+                            <%= IconUtil.icon("Plus", "icon-sm") %>
+                            <span>Create Progress</span>
+                        </a>
+                    </div>
                 </div>
 
             </div>
@@ -472,7 +459,9 @@
 
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
                 <button type="button" class="nb-btn" onclick="closeModal('progressModal')">Batal</button>
-                <button type="submit" class="nb-btn nb-btn-mint">Simpan</button>
+                <button type="submit" class="nb-btn nb-btn-mint">
+                    <%= IconUtil.icon("Save", "icon-xs") %> Simpan
+                </button>
             </div>
         </form>
     </div>
@@ -483,8 +472,10 @@
      ========================================================= -->
 <div class="nb-modal-overlay" id="diagramSpecsModal">
     <div class="nb-modal" style="max-width: 620px;">
-        <h3 style="margin-top:0; font-weight:900; font-size: 1.3rem;">📐 Diagram Specifications Alignment</h3>
-        <p style="font-size: 0.85rem; color: #475569; font-weight: 600;">Keedflix Centre System Architecture & Oracle Compliance</p>
+        <h3 style="margin-top:0; font-weight:900; font-size: 1.3rem; display: flex; align-items: center; gap: 8px;">
+            <%= IconUtil.icon("Layers", "icon-md") %> Diagram Specifications Alignment
+        </h3>
+        <p style="font-size: 0.85rem; color: #475569; font-weight: 600;">Keedsflix Centre System Architecture & Oracle Compliance</p>
         
         <div style="background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 14px; margin: 12px 0; font-size: 0.8rem; line-height: 1.5;">
             <strong>Database Mapping (Oracle `KINDERGARTEN`):</strong>
@@ -540,19 +531,6 @@
         document.getElementById(id).classList.remove('active');
     }
 
-    function filterCategory(cat, btn) {
-        document.querySelectorAll('.nb-filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        document.querySelectorAll('.ledger-item').forEach(item => {
-            if (cat === 'All' || item.getAttribute('data-domain') === cat) {
-                item.style.display = 'flex';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
     function confirmDelete(id) {
         if (confirm('Adakah anda pasti mahu memadam rekod penilaian ini?')) {
             const form = document.createElement('form');
@@ -583,5 +561,6 @@
     }
 </script>
 
+<jsp:include page="icons.jsp" />
 </body>
 </html>

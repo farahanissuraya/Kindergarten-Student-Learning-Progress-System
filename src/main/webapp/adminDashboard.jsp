@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="bean.Teacher"%>
+<%@ page import="util.IconUtil"%>
 
 <%
     // Retrieve logged in user from session using existing Teacher bean or Session Attributes
@@ -49,6 +50,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Keedflix Centre - Admin Platform</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
 
     <style>
         /* ==========================================
@@ -100,12 +102,11 @@
         .app-header-wrapper {
             flex-shrink: 0;
             background-color: #FFFFFF;
-            border-bottom: 3px solid #2D3436 !important; /* Border bawah header kekal ada */
+            border-bottom: 3px solid #2D3436 !important;
             width: 100%;
             z-index: 5;
         }
 
-        /* Memadamkan border dalaman dari header.jsp supaya tidak bertindih ke arah sidebar */
         .app-header-wrapper header,
         .app-header-wrapper .topbar-header,
         .app-header-wrapper .top-header {
@@ -119,6 +120,11 @@
             flex-grow: 1;
             overflow-y: auto;
             background-color: #FAF5EF;
+        }
+
+        .admin-platform-root {
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         /* ==========================================
@@ -138,6 +144,7 @@
             flex-direction: row;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
             gap: 20px;
         }
 
@@ -193,7 +200,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            min-width: 170px;
+            min-width: 190px;
         }
 
         .badge-box {
@@ -225,6 +232,9 @@
             font-weight: 900;
             font-size: 1.05rem;
             color: #2D3436;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         /* ==========================================
@@ -232,9 +242,11 @@
            ========================================== */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(1, 1fr);
             gap: 20px;
         }
+        @media (min-width: 640px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .metrics-grid { grid-template-columns: repeat(4, 1fr); } }
 
         .metric-card {
             background-color: #FFFFFF;
@@ -267,15 +279,16 @@
             height: 36px;
             border-radius: 12px;
             border: 2px solid #2D3436;
+            box-shadow: 2px 2px 0px 0px #2D3436;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .bg-purple-100 { background-color: #F0E8FF; }
-        .bg-amber-100 { background-color: #FFF3C4; }
-        .bg-rose-100 { background-color: #FFE3E3; }
-        .bg-emerald-100 { background-color: #D1F7E8; }
+        .bg-purple-100 { background-color: #F0E8FF; color: #6C5CE7; }
+        .bg-amber-100  { background-color: #FFF3C4; color: #D69E2E; }
+        .bg-rose-100   { background-color: #FFE3E3; color: #FF6B6B; }
+        .bg-emerald-100 { background-color: #D1F7E8; color: #10B981; }
 
         .metric-number {
             font-size: 1.8rem;
@@ -322,9 +335,7 @@
                             <!-- Left Info -->
                             <div class="admin-banner-left">
                                 <div class="shield-icon-container">
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                    </svg>
+                                    <%= IconUtil.icon("ShieldCheck", "icon-lg") %>
                                 </div>
                                 <div>
                                     <h1 class="admin-main-title">Keedflix Administrator Platform</h1>
@@ -341,11 +352,17 @@
                             <div class="admin-banner-right">
                                 <div class="badge-box badge-purple">
                                     <span class="badge-label label-purple">Total Accounts</span>
-                                    <span class="badge-value"><%= totalAccounts %> Registered</span>
+                                    <span class="badge-value">
+                                        <%= IconUtil.icon("UserCheck", "icon-sm") %>
+                                        <span><%= totalAccounts %> Registered</span>
+                                    </span>
                                 </div>
                                 <div class="badge-box badge-amber">
                                     <span class="badge-label label-amber">Enrolled Students</span>
-                                    <span class="badge-value"><%= totalStudents %> Pupils</span>
+                                    <span class="badge-value">
+                                        <%= IconUtil.icon("GraduationCap", "icon-sm") %>
+                                        <span><%= totalStudents %> Pupils</span>
+                                    </span>
                                 </div>
                             </div>
 
@@ -361,12 +378,7 @@
                                 <div class="metric-header">
                                     <span class="metric-title">System Users</span>
                                     <div class="metric-icon-box bg-purple-100">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="2.5">
-                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="9" cy="7" r="4"></circle>
-                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                        </svg>
+                                        <%= IconUtil.icon("Users", "icon-sm") %>
                                     </div>
                                 </div>
                                 <p class="metric-number"><%= totalAccounts %></p>
@@ -378,10 +390,7 @@
                                 <div class="metric-header">
                                     <span class="metric-title">Active Pupils</span>
                                     <div class="metric-icon-box bg-amber-100">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D69E2E" stroke-width="2.5">
-                                            <circle cx="12" cy="8" r="6"></circle>
-                                            <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
-                                        </svg>
+                                        <%= IconUtil.icon("Award", "icon-sm") %>
                                     </div>
                                 </div>
                                 <p class="metric-number"><%= totalStudents %></p>
@@ -393,12 +402,7 @@
                                 <div class="metric-header">
                                     <span class="metric-title">Weekly Bulletins</span>
                                     <div class="metric-icon-box bg-rose-100">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2.5">
-                                            <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path>
-                                            <path d="M18 14h-8"></path>
-                                            <path d="M15 18h-5"></path>
-                                            <path d="M10 6h8v4h-8z"></path>
-                                        </svg>
+                                        <%= IconUtil.icon("Newspaper", "icon-sm") %>
                                     </div>
                                 </div>
                                 <p class="metric-number"><%= totalNews %></p>
@@ -410,13 +414,7 @@
                                 <div class="metric-header">
                                     <span class="metric-title">Monthly Reports</span>
                                     <div class="metric-icon-box bg-emerald-100">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
-                                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                            <polyline points="14 2 14 8 20 8"></polyline>
-                                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                                            <line x1="10" y1="9" x2="8" y2="9"></line>
-                                        </svg>
+                                        <%= IconUtil.icon("FileText", "icon-sm") %>
                                     </div>
                                 </div>
                                 <p class="metric-number">Active</p>
@@ -433,5 +431,6 @@
 
     </div>
 
+    <jsp:include page="icons.jsp" />
 </body>
 </html>

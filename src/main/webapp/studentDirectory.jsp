@@ -3,6 +3,7 @@
 <%@ page import="java.util.Map"%>
 <%@ page import="bean.Student"%>
 <%@ page import="bean.Parent"%>
+<%@ page import="util.IconUtil"%>
 
 <%
     List<Student> studentList = (List<Student>) request.getAttribute("studentList");
@@ -24,6 +25,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Keedflix Centre - Student Directory</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
     <style>
         * {
             box-sizing: border-box;
@@ -73,6 +75,7 @@
             border-radius: 999px;
             border: 2px solid #2D3436;
             text-transform: uppercase;
+            display: inline-block;
         }
 
         /* Stats Row */
@@ -98,11 +101,11 @@
             height: 46px;
             border-radius: 14px;
             border: 2px solid #2D3436;
+            box-shadow: 2px 2px 0px 0px #2D3436;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
-            font-weight: 900;
+            color: #2D3436;
             flex-shrink: 0;
         }
 
@@ -119,7 +122,7 @@
             font-weight: 900;
             color: #636E72;
             text-transform: uppercase;
-            margin: 0 0 2px 0;
+            margin: 0 0 4px 0;
         }
 
         /* Controls Bar */
@@ -136,13 +139,27 @@
             gap: 12px;
         }
 
+        .search-wrap {
+            position: relative;
+            width: 280px;
+        }
+
+        .search-wrap .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #636E72;
+            display: inline-flex;
+        }
+
         .search-input-box {
-            padding: 10px 16px;
+            padding: 10px 16px 10px 36px;
             border: 2.5px solid #2D3436;
             border-radius: 12px;
             font-weight: 700;
             font-size: 0.85rem;
-            width: 280px;
+            width: 100%;
             background-color: #FAF5EF;
             outline: none;
         }
@@ -179,8 +196,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
+            color: #2D3436;
             box-shadow: 2px 2px 0px #2D3436;
+            flex-shrink: 0;
         }
 
         .progress-bar-bg {
@@ -211,6 +229,7 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
+            color: #2D3436;
         }
 
         .btn-neo:active {
@@ -222,7 +241,7 @@
         .btn-mint { background-color: #D1F7E8; color: #2D3436; }
         .btn-coral { background-color: #FF6B6B; color: #FFFFFF; }
         
-        /* Layout Pokok / Utama (Sekiranya belum ada) */
+        /* Layout Pokok / Utama */
         html, body { height: 100%; margin: 0; background-color: #FAF5EF; color: #2D3436; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
         .app-layout { display: flex; height: 100vh; width: 100%; }
         .app-sidebar-wrapper { width: 280px; flex-shrink: 0; background-color: #FFFFFF; }
@@ -253,30 +272,42 @@
                             <h1 class="banner-title">Student Directory & Profiles</h1>
                             <p class="banner-subtitle">Centralized Oracle database registry for Keedflix Centre cohorts</p>
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button type="button" onclick="window.print()" class="btn-neo" style="background-color: #FFFFFF;">🖨️ Print Roster</button>
-                            <button type="button" onclick="window.location.href='${pageContext.request.contextPath}/RegisterStudentServlet'" class="btn-neo btn-coral">➕ Enroll New Student</button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button type="button" onclick="window.print()" class="btn-neo" style="background-color: #FFFFFF;">
+                                <%= IconUtil.icon("Printer", "icon-sm") %>
+                                <span>Print Roster</span>
+                            </button>
+                            <button type="button" onclick="window.location.href='${pageContext.request.contextPath}/RegisterStudentServlet'" class="btn-neo btn-coral">
+                                <%= IconUtil.icon("UserPlus", "icon-sm") %>
+                                <span>Enroll New Student</span>
+                            </button>
                         </div>
                     </div>
 
                     <!-- Quick Stats -->
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon" style="background-color: #FFD02C;">👶</div>
+                            <div class="stat-icon" style="background-color: #FFD02C;">
+                                <%= IconUtil.icon("Users", "icon-md") %>
+                            </div>
                             <div>
                                 <p class="stat-lbl">Enrolled Pupils</p>
                                 <p class="stat-val"><%= totalStudentsCount != null ? totalStudentsCount : 0 %> Children</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon" style="background-color: #D1F7E8;">🏆</div>
+                            <div class="stat-icon" style="background-color: #D1F7E8;">
+                                <%= IconUtil.icon("Trophy", "icon-md") %>
+                            </div>
                             <div>
                                 <p class="stat-lbl">Cohort Avg Progress</p>
                                 <p class="stat-val"><%= cohortAvgProgress != null ? cohortAvgProgress : 0.0 %>%</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon" style="background-color: #FFE3E3;">📝</div>
+                            <div class="stat-icon" style="background-color: #FFE3E3;">
+                                <%= IconUtil.icon("ClipboardList", "icon-md") %>
+                            </div>
                             <div>
                                 <p class="stat-lbl">Progress Logs</p>
                                 <p class="stat-val"><%= totalLogsCount != null ? totalLogsCount : 0 %> Logged</p>
@@ -286,26 +317,33 @@
                     
                     <!-- Controls Bar (Kotak Carian & Penapis Kelas) -->
                     <div class="controls-bar">
-                        <input type="text" id="directorySearchInput" onkeyup="filterStudents()" 
-                               placeholder="Search pupil name, class, parent..." class="search-input-box">
+                        <div class="search-wrap">
+                            <span class="search-icon"><%= IconUtil.icon("Search", "icon-sm") %></span>
+                            <input type="text" id="directorySearchInput" onkeyup="filterStudents()" 
+                                   placeholder="Search pupil name, class, parent..." class="search-input-box">
+                        </div>
 
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 900;">
                                 <span>CLASS:</span>
                                 <select id="classFilterSelect" onchange="filterStudents()" style="padding: 8px 12px; border: 2.5px solid #2D3436; border-radius: 12px; font-weight: 700; background-color: #FAF5EF; outline: none;">
-                                    <option value="">All Classes (4)</option>
+                                    <option value="">All Classes (<%= studentList.size() %>)</option>
                                     <option value="Kindergarten 3B">Kindergarten 3B</option>
                                 </select>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <button type="button" class="btn-neo btn-yellow" onclick="switchView('grid')" style="padding: 8px 12px;">🔲</button>
-                                <button type="button" class="btn-neo" style="background-color: #FFFFFF; padding: 8px 12px;" onclick="switchView('table')">📋</button>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <button type="button" class="btn-neo btn-yellow" onclick="switchView('grid')" style="padding: 8px 12px;" title="Grid View">
+                                    <%= IconUtil.icon("LayoutGrid", "icon-sm") %>
+                                </button>
+                                <button type="button" class="btn-neo" style="background-color: #FFFFFF; padding: 8px 12px;" onclick="switchView('table')" title="List View">
+                                    <%= IconUtil.icon("List", "icon-sm") %>
+                                </button>
                             </div>
                         </div>
                     </div>
 
-					<!-- Grid Cards View -->
-                    <div class="students-grid" style="margin-top: 20px;">
+                    <!-- Grid Cards View -->
+                    <div class="students-grid">
                         <% 
                             for (Student s : studentList) { 
                                 Parent p = (parentMap != null) ? parentMap.get(s.getParentID()) : null;
@@ -317,17 +355,19 @@
                             <div class="student-card">
                                 <div>
                                     <!-- Header Kad: Nama & ID -->
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">
                                         <div style="display: flex; align-items: center; gap: 12px;">
-                                            <div class="student-avatar-box">👶</div>
+                                            <div class="student-avatar-box">
+                                                <%= IconUtil.icon("Smile", "icon-lg") %>
+                                            </div>
                                             <div>
                                                 <h3 style="margin: 0; font-weight: 900; font-size: 1.05rem;"><%= s.getStudentName() %></h3>
                                                 <span style="font-size: 0.75rem; color: #636E72; font-weight: 600;">
-                                                    <%= s.getStudentClass() != null ? s.getStudentClass() : "Kindergarten 3B" %> • Age <%= s.getStudentAge() != null ? s.getStudentAge() : "-" %>
+                                                    <%= s.getStudentClass() != null ? s.getStudentClass() : "Kindergarten 3B" %> · Age <%= s.getStudentAge() != null ? s.getStudentAge() : "-" %>
                                                 </span>
                                             </div>
                                         </div>
-                                        <span style="font-weight: 900; font-size: 0.8rem; padding: 4px 8px; border: 2px solid #2D3436; border-radius: 8px; background: #FAF5EF;">
+                                        <span style="font-weight: 900; font-size: 0.8rem; padding: 4px 8px; border: 2px solid #2D3436; border-radius: 8px; background: #FAF5EF; flex-shrink: 0;">
                                             ID: <%= s.getStudentID() %>
                                         </span>
                                     </div>
@@ -343,7 +383,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Kotak Mockup Subjek (Reading, Writing, Counting) -->
+                                    <!-- Kotak Subjek (Reading, Writing, Counting) -->
                                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">
                                         <div style="background: #FFFFFF; border: 2px solid #2D3436; border-radius: 10px; padding: 8px; text-align: center;">
                                             <span style="font-size: 0.65rem; font-weight: 900; color: #636E72; display: block;">Reading</span>
@@ -370,8 +410,14 @@
 
                                 <!-- Butang Tindakan Bawah -->
                                 <div style="display: flex; gap: 8px; border-top: 2px dashed #CBD5E1; padding-top: 12px;">
-                                    <a href="ProgressServlet?studentID=<%= s.getStudentID() %>" class="btn-neo btn-yellow" style="flex: 1; text-align: center;">📊 Progress</a>
-                                    <button type="button" onclick="alert('Student Profile ID: <%= s.getStudentID() %>')" class="btn-neo" style="flex: 1; background: #FFF;">👤 Profile</button>
+                                    <a href="ProgressServlet?studentID=<%= s.getStudentID() %>" class="btn-neo btn-yellow" style="flex: 1; text-align: center;">
+                                        <%= IconUtil.icon("BarChart3", "icon-xs") %>
+                                        <span>Progress</span>
+                                    </a>
+                                    <button type="button" onclick="alert('Student Profile ID: <%= s.getStudentID() %>')" class="btn-neo" style="flex: 1; background: #FFF;">
+                                        <%= IconUtil.icon("User", "icon-xs") %>
+                                        <span>Profile</span>
+                                    </button>
                                 </div>
                             </div>
                         <% } %>
@@ -406,5 +452,6 @@
         }
     </script>
 
+    <jsp:include page="icons.jsp" />
 </body>
 </html>

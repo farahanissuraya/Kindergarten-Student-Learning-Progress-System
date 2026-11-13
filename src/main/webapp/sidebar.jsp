@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="util.IconUtil"%>
 
 <%
     // Tetapkan tab aktif
@@ -6,7 +7,6 @@
     if (activeTab == null || activeTab.isBlank()) {
         activeTab = (String) request.getAttribute("activeTab");
     }
-    // DIBETULKAN: Tukar lalai (default) kepada "dashboard"
     if (activeTab == null || activeTab.isBlank()) {
         activeTab = "dashboard";
     }
@@ -42,46 +42,20 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-	.sidebar-logo-container {
+    .sidebar-logo-container {
         display: flex;
         flex-direction: column;
         align-items: center;
         margin-bottom: 24px;
         width: 100%;
     }
-    
-    .logo-box {
-        width: 64px;
-        height: 64px;
-        background-color: #FFD02C;
-        border: 3px solid #2D3436;
-        border-radius: 16px;
-        box-shadow: 3px 3px 0px #2D3436;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 16px;
-        color: #2D3436;
-    }
 
-    .sidebar-title {
-        font-size: 1.25rem;
-        font-weight: 900;
-        color: #2D3436;
-        margin: 0 0 8px 0;
-        text-align: center;
-    }
-
-    .sidebar-badge {
-        background-color: #F8F5FF;
-        color: #9333EA;
-        border: 1.5px solid #E9D5FF;
-        font-size: 0.65rem;
-        font-weight: 900;
-        padding: 6px 12px;
-        border-radius: 999px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+    .logo-img {
+        width: 100%;
+        height: auto;
+        max-height: 80px;
+        object-fit: contain;
+        display: block;
     }
 
     .sidebar-nav {
@@ -92,7 +66,10 @@
     }
 
     .nav-btn {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
         text-decoration: none;
         text-align: center;
         padding: 14px 20px;
@@ -107,6 +84,7 @@
 
     .nav-btn:hover {
         background-color: #F8FAFC;
+        transform: translate(-1px, -1px);
     }
 
     .nav-btn.btn-active {
@@ -114,144 +92,107 @@
         box-shadow: 4px 4px 0px #2D3436;
         transform: translate(-2px, -2px);
     }
-
-    .sidebar-footer {
-        margin-top: auto;
-    }
-
-    .footer-divider {
-        border: 0;
-        border-top: 2px dashed #CBD5E1;
-        margin: 0 0 24px 0;
-    }
-
-    .btn-logout {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-    
-/* Kotak Logo Tanpa Background Kuning & Border */
-    .logo-box {
-        width: 100%;
-        max-width: 200px; /* Menghadkan lebar maksimum supaya ada gap kiri/kanan */
-        height: auto;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 16px;
-        padding: 0 16px; /* Ruang gap selamat dari tepi barrier sidebar */
-        box-sizing: border-box;
-    }
-
-    /* Saiz Logo Mengikut Lebar Kotak */
-    .logo-img {
-        width: 100%;
-        height: auto;
-        max-height: 80px; /* Ketinggian optimum supaya tidak terlalu tinggi */
-        object-fit: contain;
-        display: block;
-    }
-    
 </style>
 
 <aside class="sidebar-aside" id="sidebar-navigation">
     
     <!-- Logo Header -->
-	<div class="sidebar-logo-container">
-
-            <img src="${pageContext.request.contextPath}/images/logo-keedsflix.png" 
-                 alt="Keedflix Logo" 
-                 class="logo-img" />
-
-
+    <div class="sidebar-logo-container">
+        <img src="${pageContext.request.contextPath}/images/logo-keedsflix.png" 
+             alt="Keedsflix Logo" 
+             class="logo-img" />
     </div>
 
     <!-- Navigation Links -->
     <nav class="sidebar-nav">
         
         <% if (isAdmin) { %>
-	    <!-- Dashboard Link -->
-	    <a href="${pageContext.request.contextPath}/adminDashboard" 
-	       class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
-	        Dashboard
-	    </a>
-	
-	    <!-- Learning Progress -->
-	    <a href="${pageContext.request.contextPath}/ProgressServlet" 
-	       class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
-	        Learning Progress
-	    </a>
-	
-	    <!-- Student Directory -->
-	    <a href="${pageContext.request.contextPath}/StudentDirectoryServlet" 
-	       class="nav-btn <%= "directory".equals(activeTab) ? "btn-active" : "" %>">
-	        Student Directory
-	    </a>
-	
-	    <!-- Parent Directory -->
-	    <a href="${pageContext.request.contextPath}/ParentDirectoryServlet?tab=parents" 
-	       class="nav-btn <%= "parents".equals(activeTab) ? "btn-active" : "" %>">
-	        Parent Directory
-	    </a>
-	
-	    <!-- Weekly News -->
-	    <a href="${pageContext.request.contextPath}/NewsServlet" 
-	       class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
-	        News
-	    </a>
-	
-	<% } else if (isTeacher) { %>
-	    <!-- Dashboard Link -->
-	    <a href="${pageContext.request.contextPath}/teacherDashboard" 
-	       class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
-	        Dashboard
-	    </a>
-	
-	    <!-- Learning Progress -->
-	    <a href="${pageContext.request.contextPath}/ProgressServlet" 
-	       class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
-	        Learning Progress
-	    </a>
-	
-	    <!-- Weekly News -->
-	    <a href="${pageContext.request.contextPath}/NewsServlet" 
-	       class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
-	        News
-	    </a>
-	
-	    <!-- Direct Message -->
-	    <a href="${pageContext.request.contextPath}/ChatServlet" 
-	       class="nav-btn <%= "chat".equals(activeTab) ? "btn-active" : "" %>">
-	        Direct Message
-	    </a>
-	
-	<% } else { %>
-	    <!-- Dashboard Link -->
-	    <a href="${pageContext.request.contextPath}/parentDashboard" 
-	       class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
-	        Dashboard
-	    </a>
-	
-	    <!-- Learning Progress -->
-	    <a href="${pageContext.request.contextPath}/ProgressServlet" 
-	       class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
-	        Learning Progress
-	    </a>
-	
-	    <!-- Weekly News -->
-	    <a href="${pageContext.request.contextPath}/NewsServlet" 
-	       class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
-	        News
-	    </a>
-	
-	    <!-- Direct Message -->
-	    <a href="${pageContext.request.contextPath}/ChatServlet" 
-	       class="nav-btn <%= "chat".equals(activeTab) ? "btn-active" : "" %>">
-	        Direct Message
-	    </a>
-	<% } %>
+            <!-- Dashboard Link -->
+            <a href="${pageContext.request.contextPath}/adminDashboard" 
+               class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("LayoutGrid", "icon-sm") %>
+                <span>Dashboard</span>
+            </a>
+        
+            <!-- Learning Progress -->
+            <a href="${pageContext.request.contextPath}/ProgressServlet" 
+               class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("TrendingUp", "icon-sm") %>
+                <span>Learning Progress</span>
+            </a>
+        
+            <!-- Student Directory -->
+            <a href="${pageContext.request.contextPath}/StudentDirectoryServlet" 
+               class="nav-btn <%= "directory".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("Users", "icon-sm") %>
+                <span>Student Directory</span>
+            </a>
+        
+            <!-- Weekly News -->
+            <a href="${pageContext.request.contextPath}/NewsServlet" 
+               class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("Newspaper", "icon-sm") %>
+                <span>News</span>
+            </a>
+        
+        <% } else if (isTeacher) { %>
+            <!-- Dashboard Link -->
+            <a href="${pageContext.request.contextPath}/teacherDashboard" 
+               class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("LayoutGrid", "icon-sm") %>
+                <span>Dashboard</span>
+            </a>
+        
+            <!-- Learning Progress -->
+            <a href="${pageContext.request.contextPath}/ProgressServlet" 
+               class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("TrendingUp", "icon-sm") %>
+                <span>Learning Progress</span>
+            </a>
+        
+            <!-- Weekly News -->
+            <a href="${pageContext.request.contextPath}/NewsServlet" 
+               class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("Newspaper", "icon-sm") %>
+                <span>News</span>
+            </a>
+        
+            <!-- Direct Message -->
+            <a href="${pageContext.request.contextPath}/ChatServlet" 
+               class="nav-btn <%= "chat".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("MessageCircle", "icon-sm") %>
+                <span>Direct Message</span>
+            </a>
+        
+        <% } else { %>
+            <!-- Dashboard Link -->
+            <a href="${pageContext.request.contextPath}/parentDashboard" 
+               class="nav-btn <%= "dashboard".equals(activeTab) || "overview".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("LayoutGrid", "icon-sm") %>
+                <span>Dashboard</span>
+            </a>
+        
+            <!-- Learning Progress -->
+            <a href="${pageContext.request.contextPath}/ProgressServlet" 
+               class="nav-btn <%= "progress".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("TrendingUp", "icon-sm") %>
+                <span>Learning Progress</span>
+            </a>
+        
+            <!-- Weekly News -->
+            <a href="${pageContext.request.contextPath}/NewsServlet" 
+               class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("Newspaper", "icon-sm") %>
+                <span>News</span>
+            </a>
+        
+            <!-- Direct Message -->
+            <a href="${pageContext.request.contextPath}/ChatServlet" 
+               class="nav-btn <%= "chat".equals(activeTab) ? "btn-active" : "" %>">
+                <%= IconUtil.icon("MessageCircle", "icon-sm") %>
+                <span>Direct Message</span>
+            </a>
+        <% } %>
         
     </nav>
 

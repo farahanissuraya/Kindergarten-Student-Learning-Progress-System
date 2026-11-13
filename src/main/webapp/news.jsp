@@ -3,6 +3,7 @@
 <%@ page import="java.text.SimpleDateFormat"%>
 <%@ page import="bean.News"%>
 <%@ page import="dao.NewsDAO"%>
+<%@ page import="util.IconUtil"%>
 <%
     List<News> newsList = (List<News>) request.getAttribute("newsList");
     
@@ -12,7 +13,7 @@
     
     // Semak peranan pengguna dari sesi ('Admin', 'Teacher', 'Parent')
     String userRole = (String) session.getAttribute("userRole");
-    if (userRole == null) userRole = "Teacher"; // Tetapan lalai untuk pengujian
+    if (userRole == null) userRole = "Teacher";
 
     // LOGIK PERANAN (ROLES):
     // Teacher sahaja boleh cipta/kemaskini news. Admin sahaja boleh padam.
@@ -46,6 +47,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Keedflix Centre - Weekly News & Bulletins</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
     <style>
         /* --- NEOBRUTALISM THEMED STYLING --- */
         * { box-sizing: border-box; }
@@ -73,7 +75,7 @@
         .filter-pill.active { background: #2D3436; color: #FFF; }
 
         /* Badges */
-        .badge { font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 999px; border: 2px solid #2D3436; text-transform: uppercase; }
+        .badge { font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 999px; border: 2px solid #2D3436; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; }
         .badge-academic { background-color: #E9D5FF; color: #6B21A8; border-color: #C084FC; }
         .badge-announcement { background-color: #FEF08A; color: #854D0E; border-color: #FACC15; }
         .badge-event { background-color: #FFE3E3; color: #D10000; border-color: #F87171; }
@@ -87,11 +89,13 @@
         .topic-chip { padding: 6px 12px; border-radius: 12px; border: 2px solid #2D3436; font-size: 11px; font-weight: 800; background: #FEFCE8; cursor: pointer; transition: all 0.1s; }
         .topic-chip:hover { background: #FFD02C; transform: translate(-1px, -1px); box-shadow: 2px 2px 0px 0px #2D3436; }
 
-        .cat-select-card { border: 2.5px solid #2D3436; border-radius: 16px; padding: 16px; text-align: center; cursor: pointer; background: #FFF; transition: all 0.1s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .cat-select-card { border: 2.5px solid #2D3436; border-radius: 16px; padding: 16px; text-align: center; cursor: pointer; background: #FFF; transition: all 0.1s; display: flex; flex-direction: column; align-items: center; gap: 8px; font-weight: 700; }
         .cat-select-card.selected { background: #E9D5FF; border-color: #2D3436; box-shadow: 3px 3px 0px 0px #2D3436; transform: translate(-2px, -2px); font-weight: 900; }
 
         .audience-card { border: 2.5px solid #2D3436; border-radius: 16px; padding: 16px; cursor: pointer; background: #FFF; transition: all 0.1s; }
         .audience-card.selected { background: #7BE495; border-color: #2D3436; box-shadow: 3px 3px 0px 0px #2D3436; transform: translate(-2px, -2px); }
+
+        .meta-item { display: inline-flex; align-items: center; gap: 6px; }
 
         /* Kesan tetikus tuju pada kad berita */
         .news-card-clickable {
@@ -157,7 +161,8 @@
                         <div class="neo-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 20px 28px;">
                             <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                                 <a href="NewsServlet" class="btn-neo" style="background: #FFF; border-radius: 16px;">
-                                    ⬅️ Kembali ke Buletin
+                                    <%= IconUtil.icon("ArrowLeft", "icon-sm") %>
+                                    <span>Kembali ke Buletin</span>
                                 </a>
                                 <div style="height: 24px; width: 2px; background: #CBD5E1;"></div>
                                 <div>
@@ -177,7 +182,9 @@
                         <div class="neo-card" style="background: #FFFDF7;">
                             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E2E8F0; padding-bottom: 12px; margin-bottom: 20px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="width: 32px; height: 32px; background: #FFD02C; border: 2px solid #2D3436; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">👁️</div>
+                                    <div style="width: 32px; height: 32px; background: #FFD02C; border: 2px solid #2D3436; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                        <%= IconUtil.icon("Eye", "icon-sm") %>
+                                    </div>
                                     <div>
                                         <h3 style="font-size: 1rem; font-weight: 900; margin: 0;">Pratonton Kad Buletin (Live Preview)</h3>
                                         <p style="font-size: 0.75rem; color: #64748B; margin: 0;">Paparan sebenar bagaimana kad berita ini akan kelihatan kepada ibu bapa dan guru.</p>
@@ -194,8 +201,8 @@
                                 <h3 id="cardPrevTitle" style="font-size: 1.2rem; font-weight: 900; margin: 0 0 10px 0; color: #2D3436;">Tajuk Buletin Mingguan Akan Dipaparkan Di Sini...</h3>
                                 <p id="cardPrevContent" style="font-size: 0.85rem; font-weight: 600; color: #4B5563; line-height: 1.5; margin: 0 0 20px 0; white-space: pre-line;">Kandungan berita mingguan, pengumuman kurikulum, makluman aktiviti pembelajaran, dan pesanan mesra untuk keluarga akan dipaparkan di bahagian ini secara langsung semasa anda menaip...</p>
                                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #CBD5E1; padding-top: 12px; font-size: 0.75rem; font-weight: 800; color: #64748B;">
-                                    <span>👤 Pendidik Keedflix</span>
-                                    <span>📅 <%= sdf.format(new java.util.Date()) %></span>
+                                    <span class="meta-item"><%= IconUtil.icon("User", "icon-xs") %> Pendidik Keedflix</span>
+                                    <span class="meta-item"><%= IconUtil.icon("Calendar", "icon-xs") %> <%= sdf.format(new java.util.Date()) %></span>
                                 </div>
                             </div>
                         </div>
@@ -210,7 +217,9 @@
                             <!-- Section 1: Butiran Asas -->
                             <div class="neo-card">
                                 <div style="display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #E2E8F0; padding-bottom: 12px; margin-bottom: 20px;">
-                                    <div style="width: 32px; height: 32px; background: #FFD02C; border: 2px solid #2D3436; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">📰</div>
+                                    <div style="width: 32px; height: 32px; background: #FFD02C; border: 2px solid #2D3436; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                        <%= IconUtil.icon("Newspaper", "icon-sm") %>
+                                    </div>
                                     <div>
                                         <h3 style="font-size: 1.1rem; font-weight: 900; margin: 0;">1. Butiran Asas & Tajuk Utama Buletin</h3>
                                         <p style="font-size: 0.75rem; color: #64748B; margin: 0;">Tetapkan tajuk berita yang menarik, pilih kategori teras, dan sasaran pembaca.</p>
@@ -240,23 +249,23 @@
                                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 8px;">
                                         <% String currentCat = editNews != null ? editNews.getNewsCategory() : "Academic Focus"; %>
                                         <div class="cat-select-card <%= "Academic Focus".equals(currentCat) ? "selected" : "" %>" onclick="setCategory('Academic Focus', this)">
-                                            <span style="font-size: 1.2rem;">📖</span>
+                                            <%= IconUtil.icon("BookOpen", "icon-md") %>
                                             <span style="font-size: 0.8rem;">Academic Focus</span>
                                         </div>
                                         <div class="cat-select-card <%= "Announcement".equals(currentCat) ? "selected" : "" %>" onclick="setCategory('Announcement', this)">
-                                            <span style="font-size: 1.2rem;">📢</span>
+                                            <%= IconUtil.icon("Bell", "icon-md") %>
                                             <span style="font-size: 0.8rem;">Announcement</span>
                                         </div>
                                         <div class="cat-select-card <%= "Event".equals(currentCat) ? "selected" : "" %>" onclick="setCategory('Event', this)">
-                                            <span style="font-size: 1.2rem;">🎉</span>
+                                            <%= IconUtil.icon("PartyPopper", "icon-md") %>
                                             <span style="font-size: 0.8rem;">Event</span>
                                         </div>
                                         <div class="cat-select-card <%= "Holiday".equals(currentCat) ? "selected" : "" %>" onclick="setCategory('Holiday', this)">
-                                            <span style="font-size: 1.2rem;">🌴</span>
+                                            <%= IconUtil.icon("Palmtree", "icon-md") %>
                                             <span style="font-size: 0.8rem;">Holiday</span>
                                         </div>
                                         <div class="cat-select-card <%= "Nutrition".equals(currentCat) ? "selected" : "" %>" onclick="setCategory('Nutrition', this)">
-                                            <span style="font-size: 1.2rem;">🍎</span>
+                                            <%= IconUtil.icon("Apple", "icon-md") %>
                                             <span style="font-size: 0.8rem;">Nutrition</span>
                                         </div>
                                     </div>
@@ -287,7 +296,9 @@
                             <!-- Section 2: Kandungan Mesej -->
                             <div class="neo-card" style="margin-top: 24px;">
                                 <div style="display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #E2E8F0; padding-bottom: 12px; margin-bottom: 20px;">
-                                    <div style="width: 32px; height: 32px; background: #7BE495; border: 2px solid #2D3436; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">✍️</div>
+                                    <div style="width: 32px; height: 32px; background: #7BE495; border: 2px solid #2D3436; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                        <%= IconUtil.icon("Edit3", "icon-sm") %>
+                                    </div>
                                     <div>
                                         <h3 style="font-size: 1.1rem; font-weight: 900; margin: 0;">2. Kandungan Mesej Buletin & Tetapan Penonjolan</h3>
                                         <p style="font-size: 0.75rem; color: #64748B; margin: 0;">Tulis penerangan aktiviti, objektif pembelajaran, atau arahan penting secara jelas.</p>
@@ -305,7 +316,9 @@
                                 <!-- Pinned Toggle Box -->
                                 <div style="border: 2.5px solid #2D3436; border-radius: 16px; padding: 16px; background: #FEFCE8; display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="togglePin()">
                                     <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div style="width: 36px; height: 36px; background: #FFD02C; border: 2px solid #2D3436; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">📌</div>
+                                        <div style="width: 36px; height: 36px; background: #FFD02C; border: 2px solid #2D3436; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                            <%= IconUtil.icon("Pin", "icon-md") %>
+                                        </div>
                                         <div>
                                             <div style="font-weight: 900; font-size: 0.9rem;">Sematkan Sebagai Pengumuman Utama (Pin Announcement)</div>
                                             <div style="font-size: 0.75rem; color: #64748B;">Buletin yang disematkan akan sentiasa berada di kedudukan paling atas suapan dengan bingkai serlahan khas.</div>
@@ -317,13 +330,15 @@
 
                             <!-- Section 3: Submit Actions Bar -->
                             <div class="neo-card" style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 20px 28px;">
-                                <div style="font-size: 0.8rem; font-weight: 700; color: #64748B;">
-                                    ℹ️ Buletin yang diterbitkan akan terus diselaraskan ke papan pemuka ibu bapa dan guru secara masa nyata.
+                                <div style="font-size: 0.8rem; font-weight: 700; color: #64748B; display: inline-flex; align-items: center; gap: 8px;">
+                                    <%= IconUtil.icon("Info", "icon-sm") %>
+                                    <span>Buletin yang diterbitkan akan terus diselaraskan ke papan pemuka ibu bapa dan guru secara masa nyata.</span>
                                 </div>
-                                <div style="display: flex; gap: 12px; width: 100%; sm:width: auto; justify-content: flex-end;">
+                                <div style="display: flex; gap: 12px; justify-content: flex-end;">
                                     <a href="NewsServlet" class="btn-neo" style="background: #FFF;">Batal</a>
                                     <button type="submit" class="btn-neo btn-yellow" style="padding: 12px 28px; font-size: 0.95rem;">
-                                        🚀 Terbitkan Buletin Mingguan
+                                        <%= IconUtil.icon("Send", "icon-sm") %>
+                                        <span>Terbitkan Buletin Mingguan</span>
                                     </button>
                                 </div>
                             </div>
@@ -388,8 +403,8 @@
                         <!-- ================= STANDARD FEED VIEW ================= -->
                         <div class="neo-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
                             <div style="display: flex; gap: 16px; align-items: center;">
-                                <div style="width: 54px; height: 54px; background: #FFD02C; border: 2.5px solid #2D3436; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0px #2D3436; font-size: 1.5rem;">
-                                    📰
+                                <div style="width: 54px; height: 54px; background: #FFD02C; border: 2.5px solid #2D3436; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0px #2D3436;">
+                                    <%= IconUtil.icon("Newspaper", "icon-lg") %>
                                 </div>
                                 <div>
                                     <h2 style="font-size: 1.6rem; font-weight: 900; margin: 0 0 4px 0;">Keedflix Weekly News & Bulletins</h2>
@@ -400,7 +415,8 @@
                             <!-- HANYA TEACHER BOLEH TAMBAH BERITA BAHARU -->
                             <% if (canCreate) { %>
                                 <a href="NewsServlet?mode=create" class="btn-neo btn-yellow">
-                                    ➕ Create News
+                                    <%= IconUtil.icon("Plus", "icon-sm") %>
+                                    <span>Create News</span>
                                 </a>
                             <% } %>
                         </div>
@@ -443,28 +459,34 @@
                                                               <%= item.isPinned() %>)"
                                      style="display: flex; flex-direction: column; justify-content: space-between; position: relative; <%= item.isPinned() ? "border: 3px solid #EAB308; background: #FEFCE8;" : "" %>">
                                     <div>
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">
                                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                                 <span class="badge <%= badgeClass %>"><%= item.getNewsCategory() %></span>
                                                 <% if (item.isPinned()) { %>
-                                                    <span class="badge" style="background: #FEF08A; border-color: #2D3436;">📌 Pinned</span>
+                                                    <span class="badge" style="background: #FEF08A; border-color: #2D3436;">
+                                                        <%= IconUtil.icon("Pin", "icon-xs") %> Pinned
+                                                    </span>
                                                 <% } %>
                                                 <span class="badge" style="background: #F1F5F9; color: #64748B;">Audience: <%= item.getTargetAudience() != null ? item.getTargetAudience() : "All" %></span>
                                             </div>
 
                                             <!-- BAHAGIAN AKSI (KEMASKINI & PADAM BERASASKAN PERANAN) -->
                                             <% if (canUpdate || canDelete) { %>
-                                                <div style="display: flex; gap: 6px;" onclick="event.stopPropagation();">
+                                                <div style="display: flex; gap: 6px; flex-shrink: 0;" onclick="event.stopPropagation();">
                                                     <!-- HANYA TEACHER BOLEH KEMASKINI -->
                                                     <% if (canUpdate) { %>
-                                                        <a href="NewsServlet?mode=edit&id=<%= item.getNewsID() %>" class="btn-neo" style="padding: 6px 10px; font-size: 0.75rem;" title="Kemaskini">✏️</a>
+                                                        <a href="NewsServlet?mode=edit&id=<%= item.getNewsID() %>" class="btn-neo" style="padding: 6px 10px; font-size: 0.75rem;" title="Kemaskini">
+                                                            <%= IconUtil.icon("Edit2", "icon-xs") %>
+                                                        </a>
                                                     <% } %>
                                                     <!-- HANYA ADMIN BOLEH PADAM -->
                                                     <% if (canDelete) { %>
                                                         <form action="NewsServlet" method="POST" style="margin: 0;">
                                                             <input type="hidden" name="action" value="delete">
                                                             <input type="hidden" name="newsID" value="<%= item.getNewsID() %>">
-                                                            <button type="submit" class="btn-neo btn-rose" style="padding: 6px 10px; font-size: 0.75rem;" onclick="return confirm('Padam buletin ini?');" title="Padam">🗑️</button>
+                                                            <button type="submit" class="btn-neo btn-rose" style="padding: 6px 10px; font-size: 0.75rem;" onclick="return confirm('Padam buletin ini?');" title="Padam">
+                                                                <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                                            </button>
                                                         </form>
                                                     <% } %>
                                                 </div>
@@ -476,8 +498,8 @@
                                     </div>
 
                                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #CBD5E1; margin-top: 20px; padding-top: 12px; font-size: 0.75rem; font-weight: 800; color: #64748B;">
-                                        <span>👤 <%= newsDAOForName.getTeacherNameById(item.getTeacherID()) %></span>
-                                        <span>📅 <%= item.getNewsDate() != null ? sdf.format(item.getNewsDate()) : "-" %></span>
+                                        <span class="meta-item"><%= IconUtil.icon("User", "icon-xs") %> <%= newsDAOForName.getTeacherNameById(item.getTeacherID()) %></span>
+                                        <span class="meta-item"><%= IconUtil.icon("Calendar", "icon-xs") %> <%= item.getNewsDate() != null ? sdf.format(item.getNewsDate()) : "-" %></span>
                                     </div>
                                 </div>
                             <%      }
@@ -502,10 +524,14 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; gap: 12px;">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                     <span id="modalCatBadge" class="badge badge-academic">Category</span>
-                    <span id="modalPinBadge" class="badge" style="background: #FEF08A; border-color: #2D3436; display: none;">📌 Pinned</span>
+                    <span id="modalPinBadge" class="badge" style="background: #FEF08A; border-color: #2D3436; display: none;">
+                        <%= IconUtil.icon("Pin", "icon-xs") %> Pinned
+                    </span>
                     <span id="modalAudBadge" class="badge" style="background: #F1F5F9; color: #64748B;">Audience: All</span>
                 </div>
-                <button type="button" onclick="closeDetailModalDirect()" style="background: #FFFFFF; border: 2.5px solid #2D3436; border-radius: 12px; font-weight: 900; width: 36px; height: 36px; cursor: pointer; box-shadow: 2px 2px 0px #2D3436; display: flex; align-items: center; justify-content: center;">✕</button>
+                <button type="button" onclick="closeDetailModalDirect()" style="background: #FFFFFF; border: 2.5px solid #2D3436; border-radius: 12px; font-weight: 900; width: 36px; height: 36px; cursor: pointer; box-shadow: 2px 2px 0px #2D3436; display: flex; align-items: center; justify-content: center;">
+                    <%= IconUtil.icon("X", "icon-sm") %>
+                </button>
             </div>
 
             <h2 id="modalTitle" style="font-size: 1.4rem; font-weight: 900; margin: 0 0 16px 0; color: #2D3436; line-height: 1.3;">Tajuk Berita</h2>
@@ -515,8 +541,8 @@
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #CBD5E1; padding-top: 14px; font-size: 0.8rem; font-weight: 800; color: #64748B;">
-                <span id="modalAuthor">👤 Teacher Name</span>
-                <span id="modalDate">📅 Date</span>
+                <span class="meta-item"><%= IconUtil.icon("User", "icon-xs") %> <span id="modalAuthor">Teacher Name</span></span>
+                <span class="meta-item"><%= IconUtil.icon("Calendar", "icon-xs") %> <span id="modalDate">Date</span></span>
             </div>
         </div>
     </div>
@@ -525,8 +551,8 @@
         function openDetailModal(title, category, audience, content, author, date, pinned) {
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalContent').innerText = content;
-            document.getElementById('modalAuthor').innerText = '👤 ' + author;
-            document.getElementById('modalDate').innerText = '📅 ' + date;
+            document.getElementById('modalAuthor').innerText = author;
+            document.getElementById('modalDate').innerText = date;
             document.getElementById('modalAudBadge').innerText = 'Audience: ' + audience;
 
             const catBadge = document.getElementById('modalCatBadge');
@@ -546,7 +572,7 @@
 
             const pinBadge = document.getElementById('modalPinBadge');
             if (pinned) {
-                pinBadge.style.display = 'inline-block';
+                pinBadge.style.display = 'inline-flex';
             } else {
                 pinBadge.style.display = 'none';
             }
@@ -564,5 +590,7 @@
             document.getElementById('newsDetailModal').style.display = 'none';
         }
     </script>
+
+    <jsp:include page="icons.jsp" />
 </body>
 </html>

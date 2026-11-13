@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="bean.Teacher"%>
 <%@ page import="bean.Parent"%>
+<%@ page import="util.IconUtil"%>
 
 <%
     String role = (String) session.getAttribute("role");
@@ -41,8 +42,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Keedflix Centre - My Profile</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
 
     <style>
+        * { box-sizing: border-box; }
         body, html {
             margin: 0;
             padding: 0;
@@ -91,40 +94,6 @@
             gap: 20px;
         }
 
-        /* Top Bar */
-        .top-nav-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .btn-back {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 18px;
-            background-color: #FFFFFF;
-            border: 2px solid #2D3436;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 800;
-            color: #2D3436;
-            box-shadow: 2.5px 2.5px 0px 0px #2D3436;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.15s ease;
-        }
-
-        .btn-back:hover {
-            background-color: #F8FAFC;
-        }
-
-        .breadcrumb-text {
-            font-size: 0.8rem;
-            font-weight: 800;
-            color: #64748B;
-        }
-
         /* Title Row */
         .title-row {
             display: flex;
@@ -141,7 +110,7 @@
         }
 
         .btn-edit-toggle {
-            padding: 10px 28px;
+            padding: 10px 24px;
             border-radius: 9999px;
             border: 2.5px solid #2D3436;
             font-size: 0.85rem;
@@ -150,11 +119,15 @@
             color: #2D3436;
             box-shadow: 3.5px 3.5px 0px 0px #2D3436;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             transition: all 0.15s ease;
         }
 
         .btn-edit-toggle:hover {
             background-color: #FFD02C;
+            transform: translate(-1px, -1px);
         }
 
         /* Grid Layout */
@@ -183,7 +156,6 @@
             text-align: center;
             justify-content: space-between;
             min-height: 420px;
-            box-sizing: border-box;
         }
 
         .avatar-circle {
@@ -208,7 +180,9 @@
         }
 
         .role-badge-pill {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
             font-size: 0.65rem;
             font-weight: 900;
             text-transform: uppercase;
@@ -251,7 +225,6 @@
             color: #2D3436;
             box-shadow: 2.5px 2.5px 0px 0px #2D3436;
             outline: none;
-            box-sizing: border-box;
         }
 
         /* Right Card */
@@ -266,7 +239,6 @@
             justify-content: center;
             gap: 18px;
             min-height: 420px;
-            box-sizing: border-box;
         }
 
         .field-group {
@@ -279,6 +251,9 @@
             font-size: 0.85rem;
             font-weight: 900;
             color: #2D3436;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .field-input {
@@ -291,7 +266,6 @@
             color: #2D3436;
             background-color: #FAF5EF;
             box-shadow: 2.5px 2.5px 0px 0px #2D3436;
-            box-sizing: border-box;
             outline: none;
         }
 
@@ -352,6 +326,9 @@
             color: #2D3436;
             box-shadow: 2.5px 2.5px 0px 0px #2D3436;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .btn-save {
@@ -364,17 +341,18 @@
             color: #065F46;
             box-shadow: 3px 3px 0px 0px #2D3436;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 6px;
         }
 
         .alert-success-banner {
             background-color: #D1FAE5;
-            border: 2px solid #059669;
+            border: 2.5px solid #2D3436;
             color: #065F46;
             padding: 12px 20px;
             border-radius: 16px;
+            box-shadow: 3px 3px 0px 0px #2D3436;
             font-size: 0.85rem;
             font-weight: 800;
             display: flex;
@@ -408,13 +386,14 @@
                         <h1 class="page-title">My Profile</h1>
                         
                         <button type="button" class="btn-edit-toggle" id="edit-toggle-btn" onclick="enableEditMode()">
-                            Edit Profile
+                            <%= IconUtil.icon("Edit2", "icon-sm") %>
+                            <span>Edit Profile</span>
                         </button>
                     </div>
 
                     <% if (isSuccess) { %>
                         <div class="alert-success-banner">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <%= IconUtil.icon("CheckCircle", "icon-md") %>
                             <span>Profile successfully updated!</span>
                         </div>
                     <% } %>
@@ -432,7 +411,8 @@
                                     </div>
                                     <h2 class="user-name-title">${profileName}</h2>
                                     <span class="role-badge-pill" style="background-color: <%= badgeColor %>; color: #2D3436;">
-                                        <%= badgeText %>
+                                        <%= IconUtil.icon("ShieldCheck", "icon-xs") %>
+                                        <span><%= badgeText %></span>
                                     </span>
                                 </div>
 
@@ -453,44 +433,57 @@
                             <div class="profile-right-card">
                                 
                                 <div class="field-group">
-                                    <label class="field-label">Full Name</label>
+                                    <label class="field-label">
+                                        <%= IconUtil.icon("User", "icon-xs") %> Full Name
+                                    </label>
                                     <input type="text" name="name" class="field-input" value="${profileName}" required readonly id="input-name">
                                 </div>
 
                                 <div class="field-group">
-                                    <label class="field-label">Email Address</label>
+                                    <label class="field-label">
+                                        <%= IconUtil.icon("Mail", "icon-xs") %> Email Address
+                                    </label>
                                     <input type="email" name="email" class="field-input" value="${profileEmail}" required readonly id="input-email">
                                 </div>
 
                                 <!-- Field Password Dengan Eye Icon -->
                                 <div class="field-group">
-                                    <label class="field-label">Password</label>
+                                    <label class="field-label">
+                                        <%= IconUtil.icon("KeyRound", "icon-xs") %> Password
+                                    </label>
                                     <div class="password-input-wrapper">
                                         <input type="password" name="password" class="field-input" value="${profilePassword}" required readonly id="input-password" placeholder="Enter password">
                                         <button type="button" class="btn-toggle-eye" onclick="togglePasswordVisibility()" title="Toggle Password Visibility">
-                                            <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                                <circle cx="12" cy="12" r="3"></circle>
-                                            </svg>
+                                            <span id="eye-show" style="display: inline-flex;">
+                                                <%= IconUtil.icon("Eye", "icon-md") %>
+                                            </span>
+                                            <span id="eye-hide" style="display: none;">
+                                                <i data-lucide="eye-off" class="icon-md"></i>
+                                            </span>
                                         </button>
                                     </div>
                                 </div>
 
                                 <div class="field-group">
-                                    <label class="field-label">Phone Number</label>
+                                    <label class="field-label">
+                                        <%= IconUtil.icon("Phone", "icon-xs") %> Phone Number
+                                    </label>
                                     <input type="text" name="phone" class="field-input" value="${profilePhone}" required readonly id="input-phone">
                                 </div>
 
                                 <div class="field-group">
-                                    <label class="field-label">Address</label>
+                                    <label class="field-label">
+                                        <%= IconUtil.icon("MapPin", "icon-xs") %> Address
+                                    </label>
                                     <input type="text" name="address" class="field-input" value="${profileAddress != null ? profileAddress : '742 Evergreen Terrace, Springfield'}" readonly id="input-address">
                                 </div>
 
                                 <div class="action-bar" id="edit-action-bar" style="display: none;">
-                                    <button type="button" class="btn-cancel" onclick="disableEditMode()">Cancel</button>
+                                    <button type="button" class="btn-cancel" onclick="disableEditMode()">
+                                        <%= IconUtil.icon("X", "icon-xs") %> Cancel
+                                    </button>
                                     <button type="submit" class="btn-save">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        Save Changes
+                                        <%= IconUtil.icon("Check", "icon-xs") %> Save Changes
                                     </button>
                                 </div>
 
@@ -511,16 +504,17 @@
     <script>
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById('input-password');
-            const eyeIcon = document.getElementById('eye-icon');
+            const eyeShow = document.getElementById('eye-show');
+            const eyeHide = document.getElementById('eye-hide');
 
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                // Tukar kepada SVG Eye-Off (Mata Bergaris Cross)
-                eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+                eyeShow.style.display = 'none';
+                eyeHide.style.display = 'inline-flex';
             } else {
                 passwordInput.type = 'password';
-                // Tukar kembali kepada SVG Eye Biasa
-                eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+                eyeShow.style.display = 'inline-flex';
+                eyeHide.style.display = 'none';
             }
         }
 
@@ -536,7 +530,7 @@
         }
 
         function disableEditMode() {
-            document.getElementById('edit-toggle-btn').style.display = 'block';
+            document.getElementById('edit-toggle-btn').style.display = 'inline-flex';
             document.getElementById('edit-action-bar').style.display = 'none';
 
             const inputs = document.querySelectorAll('.field-input');
@@ -546,5 +540,7 @@
             });
         }
     </script>
+
+    <jsp:include page="icons.jsp" />
 </body>
 </html>

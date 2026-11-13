@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="bean.Chat"%>
+<%@ page import="util.IconUtil"%>
 <%@ page import="java.util.List"%>
 <%@ page import="java.util.HashMap"%>
 <%@ page import="java.text.SimpleDateFormat"%>
@@ -32,7 +33,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parent-Teacher Hub - Keedflix Centre</title>
+    <title>Parent-Teacher Hub - Keedsflix Centre</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
 
     <style>
         :root {
@@ -124,7 +126,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
             box-shadow: var(--shadow-sm);
             flex-shrink: 0;
         }
@@ -167,7 +168,7 @@
         }
         .search-input {
             width: 100%;
-            padding: 10px 14px 10px 36px;
+            padding: 10px 14px 10px 38px;
             background-color: #FAF5EF;
             border: 1.5px solid #E2E8F0;
             border-radius: 14px;
@@ -185,8 +186,9 @@
             left: 12px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 0.85rem;
             color: #94A3B8;
+            display: inline-flex;
+            align-items: center;
         }
 
         .security-banner {
@@ -237,7 +239,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            color: var(--border-dark);
             flex-shrink: 0;
         }
         .contact-item.active .contact-avatar {
@@ -266,12 +268,13 @@
         .header-tools {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
             color: #64748B;
-            font-size: 1rem;
         }
         .header-tools span {
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
             transition: color 0.15s;
         }
         .header-tools span:hover {
@@ -353,7 +356,10 @@
             font-size: 0.65rem;
             color: #64748B;
             margin-top: 8px;
-            text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
             font-weight: 600;
         }
 
@@ -401,10 +407,15 @@
             align-items: center;
             gap: 10px;
             color: #64748B;
-            font-size: 1.1rem;
         }
         .input-action-icons span {
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.15s;
+        }
+        .input-action-icons span:hover {
+            color: var(--border-dark);
         }
 
         .chat-text-input {
@@ -432,7 +443,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            color: var(--border-dark);
             cursor: pointer;
             box-shadow: var(--shadow-sm);
             transition: all 0.15s ease;
@@ -465,7 +476,9 @@
                 <!-- TOP YELLOW HEADER -->
                 <div class="hub-top-banner">
                     <div style="display: flex; align-items: center; gap: 14px;">
-                        <div class="hub-icon-box">💬</div>
+                        <div class="hub-icon-box">
+                            <%= IconUtil.icon("MessageCircle", "icon-md") %>
+                        </div>
                         <div>
                             <h2 style="font-size: 1.25rem; font-weight: 900; letter-spacing: -0.3px;">Parent-Teacher Hub</h2>
                             <p style="font-size: 0.78rem; font-weight: 600; color: #334155;">
@@ -475,7 +488,9 @@
                     </div>
 
                     <div class="student-context-pill">
-                        <span style="background: #FEF3C7; padding: 3px 6px; border-radius: 8px; border: 1px solid #F59E0B;">🦁</span>
+                        <span style="background: #FEF3C7; padding: 4px 6px; border-radius: 8px; border: 1.5px solid #F59E0B; display: inline-flex; align-items: center; color: #D97706;">
+                            <%= IconUtil.icon("GraduationCap", "icon-sm") %>
+                        </span>
                         <span>Murid: ${not empty studentName ? studentName : 'Tiada Rekod'}</span>
                         <span style="color: #94A3B8;">·</span>
                         <span style="color: #64748B; font-weight: 700;">${not empty studentClass ? studentClass : '-'}</span>
@@ -487,12 +502,14 @@
                     <!-- LEFT CONTACTS SIDEBAR -->
                     <div class="chat-sidebar">
                         <div class="search-box-wrap">
-                            <span class="search-icon">🔍</span>
+                            <span class="search-icon"><%= IconUtil.icon("Search", "icon-sm") %></span>
                             <input type="text" class="search-input" id="chatSearchInput" placeholder="Search chats..." onkeyup="filterContacts()">
                         </div>
 
                         <div class="security-banner">
-                            <span style="color: #0D9488; font-size: 0.9rem;">🛡️</span>
+                            <span style="color: #0D9488; display: inline-flex; margin-top: 1px;">
+                                <%= IconUtil.icon("ShieldCheck", "icon-sm") %>
+                            </span>
                             <div>
                                 <strong style="color: #0F766E;">End-to-End Secure:</strong> All data is fully protected and adheres strictly to school privacy agreements.
                             </div>
@@ -513,7 +530,9 @@
                                         <a href="<%= targetUrl %>" style="text-decoration: none; color: inherit;">
                                             <div class="contact-item <%= isActiveContact ? "active" : "" %>">
                                                 <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                                                    <div class="contact-avatar"><%= isTeacherView ? "👪" : "👩‍🏫" %></div>
+                                                    <div class="contact-avatar">
+                                                        <%= isTeacherView ? IconUtil.icon("Users", "icon-md") : IconUtil.icon("UserCheck", "icon-md") %>
+                                                    </div>
                                                     <div style="min-width: 0;">
                                                         <h4 style="font-size: 0.82rem; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                                             <%= cName %>
@@ -531,7 +550,9 @@
                             %>
                                     <div class="contact-item active">
                                         <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                                            <div class="contact-avatar"><%= isTeacherView ? "👪" : "👩‍🏫" %></div>
+                                            <div class="contact-avatar">
+                                                <%= isTeacherView ? IconUtil.icon("Users", "icon-md") : IconUtil.icon("UserCheck", "icon-md") %>
+                                            </div>
                                             <div style="min-width: 0;">
                                                 <h4 style="font-size: 0.82rem; font-weight: 900;"><%= activeChatPartner %></h4>
                                                 <p style="font-size: 0.7rem; color: #64748B; font-weight: 700;">Active Now</p>
@@ -550,8 +571,8 @@
                         <!-- Active Chat Header -->
                         <div class="chat-header">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 38px; height: 38px; background: var(--yellow-accent); border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
-                                    <%= isTeacherView ? "👪" : "👩‍🏫" %>
+                                <div style="width: 38px; height: 38px; background: var(--yellow-accent); border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <%= isTeacherView ? IconUtil.icon("Users", "icon-md") : IconUtil.icon("UserCheck", "icon-md") %>
                                 </div>
                                 <div>
                                     <h4 style="font-size: 0.92rem; font-weight: 900;">
@@ -565,18 +586,18 @@
                             </div>
 
                             <div class="header-tools">
-                                <span title="Audio">🔊</span>
+                                <span title="Audio"><%= IconUtil.icon("Volume2", "icon-sm") %></span>
                                 <span style="color: #CBD5E1;">|</span>
-                                <span title="Voice Call">📞</span>
-                                <span title="Video Call">📹</span>
-                                <span title="More Options">⋮</span>
+                                <span title="Voice Call"><%= IconUtil.icon("Phone", "icon-sm") %></span>
+                                <span title="Video Call"><%= IconUtil.icon("Video", "icon-sm") %></span>
+                                <span title="More Options"><%= IconUtil.icon("MoreVertical", "icon-sm") %></span>
                             </div>
                         </div>
 
                         <!-- Sub-Header Strip -->
                         <div class="sim-banner">
-                            <span style="color: #6D28D9; font-weight: 800;">
-                                ✨ Direct messaging with <%= activeChatPartner %>!
+                            <span style="color: #6D28D9; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;">
+                                <%= IconUtil.icon("Sparkles", "icon-xs") %> Direct messaging with <%= activeChatPartner %>!
                             </span>
                             <span style="color: #64748B; font-weight: 600;">
                                 Select quick templates below to ask questions!
@@ -600,10 +621,11 @@
                                             <div class="msg-bubble <%= isOwn ? "msg-own" : "msg-other" %>">
                                                 <div><%= chat.getMessageContent() %></div>
                                                 <div class="msg-meta">
-                                                    <%= formattedTime %>
+                                                    <span><%= formattedTime %></span>
                                                     <% if (isOwn) { %>
-                                                        <span style="font-weight: 900; margin-left: 4px; color: <%= chat.isRead() ? "#2563EB" : "#94A3B8" %>;"
-                                                              title="<%= chat.isRead() ? "Dibaca" : "Dihantar" %>">✓✓</span>
+                                                        <span title="<%= chat.isRead() ? "Dibaca" : "Dihantar" %>" style="display: inline-flex; align-items: center;">
+                                                            <i data-lucide="check-check" class="icon-xs <%= chat.isRead() ? "icon-read-blue" : "icon-sent-gray" %>"></i>
+                                                        </span>
                                                     <% } %>
                                                 </div>
                                             </div>
@@ -624,23 +646,23 @@
                         <div class="quick-templates-bar">
                             <% if (isTeacherView) { %>
                                 <button type="button" class="template-pill" onclick="setQuickMsg('Selamat sejahtera, anak anda menunjukkan peningkatan yang sangat baik dalam kelas hari ini!')">
-                                    🌟 Kongsi Pencapaian Murid
+                                    <%= IconUtil.icon("Star", "icon-xs") %> Kongsi Pencapaian Murid
                                 </button>
                                 <button type="button" class="template-pill" onclick="setQuickMsg('Sila semak modul Learning Progress untuk laporan pentaksiran mingguan terkini.')">
-                                    📊 Maklum Laporan Mingguan
+                                    <%= IconUtil.icon("BarChart3", "icon-xs") %> Maklum Laporan Mingguan
                                 </button>
                                 <button type="button" class="template-pill" onclick="setQuickMsg('Terima kasih atas kerjasama pihak ibu bapa dalam memantau latihan di rumah.')">
-                                    🤝 Penghargaan Penjaga
+                                    <%= IconUtil.icon("HeartHandshake", "icon-xs") %> Penghargaan Penjaga
                                 </button>
                             <% } else { %>
                                 <button type="button" class="template-pill" onclick="setQuickMsg('Ask about Math progress: How is my child doing in counting activities this week?')">
-                                    📊 Ask about Math progress
+                                    <%= IconUtil.icon("BarChart3", "icon-xs") %> Ask about Math progress
                                 </button>
                                 <button type="button" class="template-pill" onclick="setQuickMsg('Ask about Pencil Grip: Has there been improvement in tripod grip during writing?')">
-                                    ✏️ Ask about Pencil Grip
+                                    <%= IconUtil.icon("PenTool", "icon-xs") %> Ask about Pencil Grip
                                 </button>
                                 <button type="button" class="template-pill" onclick="setQuickMsg('Thank you teacher for the detailed update and guidance!')">
-                                    ❤️ Send Encouragement
+                                    <%= IconUtil.icon("Heart", "icon-xs") %> Send Encouragement
                                 </button>
                             <% } %>
                         </div>
@@ -652,15 +674,15 @@
                             <input type="hidden" name="senderRole" value="<%= isTeacherView ? "Teacher" : "Parent" %>">
 
                             <div class="input-action-icons">
-                                <span title="Emoji">😊</span>
-                                <span title="Attach File">📎</span>
+                                <span title="Emoji"><%= IconUtil.icon("Smile", "icon-md") %></span>
+                                <span title="Attach File"><%= IconUtil.icon("Paperclip", "icon-md") %></span>
                             </div>
 
                             <input type="text" name="messageContent" id="messageInput" class="chat-text-input" 
                                    placeholder="Type a message as <%= isTeacherView ? "Teacher" : "Parent" %>..." required autocomplete="off">
                             
                             <button type="submit" class="send-icon-btn" title="Hantar Mesej">
-                                ➤
+                                <%= IconUtil.icon("Send", "icon-md") %>
                             </button>
                         </form>
 
@@ -692,5 +714,7 @@
         if (stream) stream.scrollTop = stream.scrollHeight;
     };
 </script>
+
+<jsp:include page="icons.jsp" />
 </body>
 </html>

@@ -1,0 +1,71 @@
+:root {
+    --nb-bg-canvas: #FAF5EF;
+    --nb-border-dark: #2D3436;
+    --nb-yellow: #FFD166;
+    --nb-coral: #FF6B6B;
+    --nb-mint: #2EC4B6;
+    --nb-purple: #7C3AED;
+    --nb-purple-soft: #F3E8FF;
+    --nb-shadow-sm: 2px 2px 0px 0px var(--nb-border-dark);
+    --nb-shadow-md: 3px 3px 0px 0px var(--nb-border-dark);
+}
+
+/* Saiz Asas SVG Lucide */
+.lucide {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.4;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.icon-xs { width: 14px; height: 14px; stroke-width: 2.5; }
+.icon-sm { width: 16px; height: 16px; stroke-width: 2.4; }
+.icon-md { width: 20px; height: 20px; stroke-width: 2.4; }
+.icon-lg { width: 24px; height: 24px; stroke-width: 2.3; }
+
+/* Kotak Ikon Neobrutalism (Sesuai untuk Header, Kad & Avatar) */
+.nb-icon-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #FFFFFF;
+    color: var(--nb-border-dark);
+    border: 2px solid var(--nb-border-dark);
+    border-radius: 12px;
+    box-shadow: var(--nb-shadow-sm);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    flex-shrink: 0;
+}
+
+.nb-icon-box-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+}
+
+.nb-icon-box-lg {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    border-width: 2.5px;
+    box-shadow: var(--nb-shadow-md);
+}
+
+.nb-icon-box:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--nb-shadow-md);
+}
+
+/* Variasi Warna Latar Belakang Neobrutalism */
+.nb-bg-yellow { background-color: var(--nb-yellow); }
+.nb-bg-coral  { background-color: var(--nb-coral); color: #FFFFFF; }
+.nb-bg-mint   { background-color: var(--nb-mint); color: #FFFFFF; }
+.nb-bg-purple { background-color: var(--nb-purple-soft); color: var(--nb-purple); }
+.nb-bg-cream  { background-color: var(--nb-bg-canvas); }
+
+/* Status Tanda Baca Chat (CheckCheck) */
+.icon-read-blue { color: #2563EB; stroke-width: 2.8; }
+.icon-sent-gray { color: #94A3B8; stroke-width: 2.5; }

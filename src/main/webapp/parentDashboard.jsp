@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page import="bean.Parent"%>
 <%@ page import="util.IconUtil"%>
 
@@ -65,39 +66,114 @@
             margin: 0 auto;
         }
 
-        /* Banner Card */
+        /* Interactive Banner Card + Child Switcher Dropdown */
+        .banner-dropdown-wrapper {
+            position: relative;
+            width: 100%;
+            z-index: 30;
+        }
+
         .banner-card {
+            width: 100%;
             background-color: #FFFFFF;
             border: 3px solid #2D3436;
             border-radius: 24px;
-            padding: 24px;
+            padding: 22px 24px;
             box-shadow: 5px 5px 0px 0px #2D3436;
             display: flex;
             flex-direction: column;
             gap: 16px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s ease;
         }
         @media (min-width: 1024px) {
             .banner-card { flex-direction: row; align-items: center; justify-content: space-between; }
         }
+        .banner-card:hover {
+            background-color: #FFFDF9;
+            transform: translate(-1px, -1px);
+            box-shadow: 6px 6px 0px 0px #2D3436;
+        }
+
         .banner-left { display: flex; align-items: center; gap: 16px; }
         .heart-icon-box {
-            width: 64px; height: 64px; border-radius: 16px; background-color: #FFB3C6; 
+            width: 60px; height: 60px; border-radius: 16px; background-color: #FFB3C6; 
             border: 3px solid #2D3436; display: flex; align-items: center; justify-content: center; 
             color: #2D3436; box-shadow: 3px 3px 0px 0px #2D3436; flex-shrink: 0;
         }
         .banner-title-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
-        .banner-title { font-size: 1.5rem; font-weight: 900; color: #2D3436; margin: 0; }
+        .banner-title { font-size: 1.45rem; font-weight: 900; color: #2D3436; margin: 0; }
         .banner-badge {
             background-color: #FFB3C6; color: #2D3436; font-size: 10px; font-weight: 900; 
             text-transform: uppercase; padding: 4px 12px; border-radius: 999px; border: 2px solid #2D3436;
         }
-        .banner-subtitle { font-size: 0.85rem; color: #636E72; margin: 0; }
+        .banner-subtitle { font-size: 0.85rem; color: #636E72; margin: 0; font-weight: 600; }
+
         .banner-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .info-pill { border: 2.5px solid; border-radius: 16px; padding: 10px 16px; display: flex; flex-direction: column; }
+        .info-pill { border: 2.5px solid; border-radius: 16px; padding: 8px 14px; display: flex; flex-direction: column; }
         .pill-pink { background-color: #FFF0F3; border-color: #FFB3C6; }
         .pill-amber { background-color: #FFF9E6; border-color: #FFE082; }
         .pill-label { font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }
-        .pill-value { font-size: 1.1rem; font-weight: 900; color: #2D3436; display: flex; align-items: center; gap: 6px; }
+        .pill-value { font-size: 1rem; font-weight: 900; color: #2D3436; display: flex; align-items: center; gap: 6px; }
+
+        .banner-chevron {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2.5px solid #2D3436;
+            background-color: #FAF5EF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2D3436;
+            flex-shrink: 0;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        .banner-dropdown-wrapper.open .banner-chevron {
+            transform: rotate(180deg);
+            background-color: #FFD02C;
+        }
+
+        /* Dropdown Menu List Under Banner */
+        .banner-child-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            background-color: #FFFFFF;
+            border: 3px solid #2D3436;
+            border-radius: 24px;
+            box-shadow: 6px 6px 0px 0px #2D3436;
+            padding: 18px 20px;
+            z-index: 50;
+            display: none;
+        }
+        .banner-child-menu.show { display: block; }
+
+        .child-option {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border: 2.5px solid transparent;
+            border-radius: 16px;
+            background: #FFFFFF;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            color: #2D3436;
+            margin-bottom: 8px;
+        }
+        .child-option:last-child { margin-bottom: 0; }
+        .child-option:hover { border-color: #2D3436; background-color: #FFF0F3; }
+        .child-option.selected {
+            background-color: #FFF5F7;
+            border-color: #2D3436;
+            box-shadow: 3px 3px 0px 0px #2D3436;
+        }
 
         /* Metrics Grid */
         .metrics-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 16px; }
@@ -119,28 +195,6 @@
         .bg-rose { background-color: #FFE4E6; color: #E11D48; }
         .metric-value { font-size: 2rem; font-weight: 900; color: #2D3436; margin: 0 0 4px 0; line-height: 1; }
         .metric-sub { font-size: 11px; color: #636E72; margin: 0; }
-
-        /* Dropdown */
-        .dropdown-container { position: relative; width: 100%; z-index: 20; }
-        .dropdown-btn {
-            width: 100%; background-color: #FFFFFF; border: 3px solid #2D3436; border-radius: 24px; 
-            padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; 
-            box-shadow: 4px 4px 0px 0px #2D3436; cursor: pointer; transition: all 0.15s ease; text-align: left;
-        }
-        .dropdown-btn:hover { background-color: #FFF0F3; }
-        .dropdown-menu {
-            position: absolute; top: 110%; left: 0; right: 0; background-color: #FFFFFF; 
-            border: 3px solid #2D3436; border-radius: 24px; box-shadow: 6px 6px 0px 0px #2D3436; 
-            padding: 16px; z-index: 40; display: none;
-        }
-        .dropdown-menu.show { display: block; }
-        .child-option {
-            width: 100%; display: flex; align-items: center; justify-content: space-between; 
-            padding: 12px; border: 2px solid transparent; border-radius: 16px; background: none; 
-            cursor: pointer; text-align: left; transition: all 0.15s ease; text-decoration: none; color: inherit;
-        }
-        .child-option:hover { border-color: #2D3436; background-color: #FFF0F3; }
-        .child-option.selected { background-color: #FFF0F3; border-color: #2D3436; box-shadow: 3px 3px 0px #2D3436; }
 
         /* Charts Row */
         .charts-row { display: grid; grid-template-columns: 1fr; gap: 24px; }
@@ -387,38 +441,84 @@
                 
                 <div class="parent-platform-root" id="parent-platform-root">
                     
-                    <!-- 1. Parent Title & Role Banner -->
-                    <div class="banner-card">
-                        <div class="banner-left">
-                            <div class="heart-icon-box">
-                                <%= IconUtil.icon("Heart", "icon-lg") %>
-                            </div>
-                            <div>
-                                <div class="banner-title-group">
-                                    <h1 class="banner-title">Keedflix Parent & Family Platform</h1>
-                                    <span class="banner-badge">Family Connection Hub</span>
+                    <!-- 1. Parent Title & Interactive Child Switcher Banner -->
+                    <div class="banner-dropdown-wrapper" id="bannerDropdownWrapper">
+                        <button type="button" class="banner-card" onclick="toggleBannerDropdown()">
+                            <div class="banner-left">
+                                <div class="heart-icon-box">
+                                    <%= IconUtil.icon("Heart", "icon-lg") %>
                                 </div>
-                                <p class="banner-subtitle">
-                                    Logged in as: <strong>${parentName}</strong> (${parentTitle}) • Connected to <strong>${currentStudent.name}</strong>
-                                </p>
+                                <div>
+                                    <div class="banner-title-group">
+                                        <h1 class="banner-title">Welcome back, <strong>${parentName}</strong></h1>
+                                    </div>
+                                    <p class="banner-subtitle">
+                                        Logged in as: ${parentTitle} • Connected to <strong>${currentStudent.name}</strong>
+                                    </p>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="banner-right">
-                            <div class="info-pill pill-pink">
-                                <span class="pill-label" style="color: #BE185D;">Linked Pupil</span>
-                                <span class="pill-value">
-                                    <%= IconUtil.icon("User", "icon-sm") %>
-                                    <span>${currentStudent.name}</span>
-                                </span>
+                            <div class="banner-right">
+                                <div class="banner-chevron" title="Tukar pilihan anak">
+                                    <%= IconUtil.icon("ChevronDown", "icon-md") %>
+                                </div>
                             </div>
-                            <div class="info-pill pill-amber">
-                                <span class="pill-label" style="color: #92400E;">Enrolled Classroom</span>
-                                <span class="pill-value">
-                                    <%= IconUtil.icon("GraduationCap", "icon-sm") %>
-                                    <span>${currentStudent.className}</span>
-                                </span>
-                            </div>
+                        </button>
+
+                        <!-- Dropdown Menu List (Senarai Anak Berdaftar Under Parent) -->
+                        <div class="banner-child-menu" id="bannerChildMenu">
+                            <p style="font-size: 11px; font-weight: 900; color: #636E72; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 12px 4px;">
+                                SELECT REGISTERED CHILD (${not empty registeredChildren ? registeredChildren.size() : 1})
+                            </p>
+                            
+                            <c:choose>
+                                <c:when test="${not empty registeredChildren}">
+                                    <c:forEach var="child" items="${registeredChildren}">
+                                        <a href="${pageContext.request.contextPath}/parentDashboard?studentId=${child.id}" class="child-option ${child.id == currentStudent.id ? 'selected' : ''}">
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <span style="background: ${child.id == currentStudent.id ? '#FFB3C6' : '#FAF5EF'}; border: 2px solid #2D3436; border-radius: 50%; width: 42px; height: 42px; display: flex; justify-content: center; align-items: center; flex-shrink: 0;">
+                                                    <%= IconUtil.icon("Smile", "icon-sm") %>
+                                                </span>
+                                                <div>
+                                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                        <p style="font-size: 15px; font-weight: 900; margin: 0; color: #2D3436;">${child.name}</p>
+                                                        <c:if test="${child.id == currentStudent.id}">
+                                                            <span style="background: #FFD02C; color: #2D3436; border: 1.5px solid #2D3436; font-size: 10px; font-weight: 900; padding: 1px 8px; border-radius: 999px;">
+                                                                Current
+                                                            </span>
+                                                        </c:if>
+                                                    </div>
+                                                    <p style="font-size: 12px; color: #636E72; margin: 2px 0 0 0; font-weight: 600;">${child.className} • Age: ${child.age}</p>
+                                                </div>
+                                            </div>
+                                            <c:if test="${child.id == currentStudent.id}">
+                                                <div style="background: #2D3436; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                    <%= IconUtil.icon("Check", "icon-xs") %>
+                                                </div>
+                                            </c:if>
+                                        </a>
+                                    </c:forEach>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="child-option selected" style="cursor: default;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <span style="background: #FFB3C6; border: 2px solid #2D3436; border-radius: 50%; width: 42px; height: 42px; display: flex; justify-content: center; align-items: center;">
+                                                <%= IconUtil.icon("Smile", "icon-sm") %>
+                                            </span>
+                                            <div>
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <p style="font-size: 15px; font-weight: 900; margin: 0; color: #2D3436;">${currentStudent.name}</p>
+                                                    <span style="background: #FFD02C; color: #2D3436; border: 1.5px solid #2D3436; font-size: 10px; font-weight: 900; padding: 1px 8px; border-radius: 999px;">Current</span>
+                                                </div>
+                                                <p style="font-size: 12px; color: #636E72; margin: 2px 0 0 0; font-weight: 600;">${currentStudent.className} • Age: ${currentStudent.age}</p>
+                                            </div>
+                                        </div>
+                                        <div style="background: #2D3436; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                            <%= IconUtil.icon("Check", "icon-xs") %>
+                                        </div>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
 
@@ -469,79 +569,36 @@
                         </div>
                     </div>
 
-                    <!-- 3. Registered Child Dropdown -->
-                    <c:if test="${hasMultipleChildren}">
-                        <div class="dropdown-container">
-                            <button type="button" class="dropdown-btn" id="dropdownBtn" onclick="toggleDropdown()">
-                                <div style="display: flex; align-items: center; gap: 16px;">
-                                    <span style="width: 44px; height: 44px; background: #FFF0F3; border: 2px solid #2D3436; border-radius: 14px; display: flex; align-items: center; justify-content: center;">
-                                        <%= IconUtil.icon("Smile", "icon-md") %>
-                                    </span>
-                                    <div>
-                                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                                            <span style="font-size: 1.2rem; font-weight: 900; color: #2D3436;">${currentStudent.name}</span>
-                                            <span style="font-size: 10px; font-weight: 800; background: #FFB3C6; padding: 2px 8px; border-radius: 10px; border: 1px solid #2D3436;">${currentStudent.className}</span>
-                                        </div>
-                                        <span style="font-size: 12px; color: #636E72; font-weight: 600;">Age: ${currentStudent.age} • Click to switch child</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <%= IconUtil.icon("ChevronDown", "icon-md") %>
-                                </div>
-                            </button>
-
-                            <!-- Dropdown Menu List -->
-                            <div class="dropdown-menu" id="dropdownMenu">
-                                <p style="font-size: 11px; font-weight: 900; color: #636E72; text-transform: uppercase; margin: 0 0 10px 0;">Select Registered Child</p>
-                                
-                                <c:forEach var="child" items="${registeredChildren}">
-                                    <a href="${pageContext.request.contextPath}/ParentPlatformServlet?studentId=${child.id}" class="child-option ${child.id == currentStudent.id ? 'selected' : ''}">
-                                        <div style="display: flex; align-items: center; gap: 12px;">
-                                            <span style="background: #FFF; border: 2px solid #2D3436; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;">
-                                                <%= IconUtil.icon("User", "icon-sm") %>
-                                            </span>
-                                            <div>
-                                                <p style="font-size: 14px; font-weight: 900; margin: 0; color: #2D3436;">${child.name}</p>
-                                                <p style="font-size: 11px; color: #636E72; margin: 0;">${child.className} • Age: ${child.age}</p>
-                                            </div>
-                                        </div>
-                                        <c:if test="${child.id == currentStudent.id}">
-                                            <div style="background: #2D3436; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                                <%= IconUtil.icon("Check", "icon-xs") %>
-                                            </div>
-                                        </c:if>
-                                    </a>
-                                </c:forEach>
-                            </div>
-                        </div>
-                    </c:if>
-
-                    <!-- 4. Child Developmental Balance Charts Row -->
+                    <!-- 3. Child Developmental Balance Charts Row -->
                     <div class="charts-row">
                         <!-- Kotak Radar Chart -->
-                        <div style="width: 100%; height: 480px; border-radius: 24px;">
+                        <div style="width: 100%; height: 560px;">
                             <iframe src="${pageContext.request.contextPath}/RadarChartServlet?studentId=${currentStudent.id}" 
                                     width="100%" 
                                     height="100%" 
                                     frameborder="0" 
                                     scrolling="no"
+                                    allowtransparency="true"
+                                    style="background: transparent; display: block;"
                                     title="Radar Chart">
                             </iframe>
                         </div>
                         
                         <!-- Kotak Trend Chart -->
-                        <div style="width: 100%; height: 480px; border-radius: 24px;">
+                        <div style="width: 100%; height: 560px;">
                             <iframe src="${pageContext.request.contextPath}/TrendChartServlet?studentId=${currentStudent.id}" 
                                     width="100%" 
                                     height="100%" 
                                     frameborder="0" 
                                     scrolling="no"
+                                    allowtransparency="true"
+                                    style="background: transparent; display: block;"
                                     title="Trend Chart">
                             </iframe>
                         </div>
                     </div>
                     
-                    <!-- 5. Keedflix Centre News & Weekly Bulletins -->
+                    <!-- 4. Keedflix Centre News & Weekly Bulletins -->
                     <div class="news-section">
                         
                         <!-- Header Berita -->
@@ -552,9 +609,9 @@
                                 </div>
                                 <div>
                                     <h2 class="news-title">
-                                        Keedflix Centre News & Weekly Bulletins
+                                        Keedflix Centre News &amp; Weekly Bulletins
                                     </h2>
-                                    <p class="news-subtitle">Curriculum updates, reading & counting activities, and upcoming centre events for families</p>
+                                    <p class="news-subtitle">Curriculum updates, reading &amp; counting activities, and upcoming centre events for families</p>
                                 </div>
                             </div>
                             <a href="${pageContext.request.contextPath}/NewsServlet" class="btn-view-portal">
@@ -589,8 +646,8 @@
                                         PINNED
                                     </span>
                                 </div>
-                                <h3 class="nc-title">September Literacy Expedition: Phonics & CVC Blending Week</h3>
-                                <p class="nc-excerpt">This week across all kindergarten classrooms, teachers and students are embarking on our interactive Phonics & Letter Blending Expedition! Children will be building tactile 3-letter CVC word cubes and matching...</p>
+                                <h3 class="nc-title">September Literacy Expedition: Phonics &amp; CVC Blending Week</h3>
+                                <p class="nc-excerpt">This week across all kindergarten classrooms, teachers and students are embarking on our interactive Phonics &amp; Letter Blending Expedition! Children will be building tactile 3-letter CVC word cubes and matching...</p>
                                 <div class="nc-footer">
                                     <span class="nc-author">
                                         <%= IconUtil.icon("User", "icon-xs") %>
@@ -612,8 +669,8 @@
                                         PINNED
                                     </span>
                                 </div>
-                                <h3 class="nc-title">Autumn Counting Carnival & Family Math Day</h3>
-                                <p class="nc-excerpt">Join us on Friday, September 25th for our annual Kindergarten Math & Counting Carnival. Interactive stations include 1-to-1 acorn counting, numeral scavenger hunts, and giant floor number line hops....</p>
+                                <h3 class="nc-title">Autumn Counting Carnival &amp; Family Math Day</h3>
+                                <p class="nc-excerpt">Join us on Friday, September 25th for our annual Kindergarten Math &amp; Counting Carnival. Interactive stations include 1-to-1 acorn counting, numeral scavenger hunts, and giant floor number line hops....</p>
                                 <div class="nc-footer">
                                     <span class="nc-author">
                                         <%= IconUtil.icon("User", "icon-xs") %>
@@ -638,9 +695,11 @@
 
     <!-- SCRIPT FOR INTERACTIVITY -->
     <script>
-        function toggleDropdown() {
-            const menu = document.getElementById('dropdownMenu');
-            if (menu) {
+        function toggleBannerDropdown() {
+            const wrapper = document.getElementById('bannerDropdownWrapper');
+            const menu = document.getElementById('bannerChildMenu');
+            if (wrapper && menu) {
+                wrapper.classList.toggle('open');
                 menu.classList.toggle('show');
             }
         }
@@ -659,16 +718,13 @@
         }
 
         window.onclick = function(event) {
-            if (!event.target.closest('.dropdown-container')) {
-                const dropdowns = document.getElementsByClassName("dropdown-menu");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    const openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
+            if (!event.target.closest('#bannerDropdownWrapper')) {
+                const wrapper = document.getElementById('bannerDropdownWrapper');
+                const menu = document.getElementById('bannerChildMenu');
+                if (wrapper) wrapper.classList.remove('open');
+                if (menu) menu.classList.remove('show');
             }
-        }
+        };
     </script>
 
     <jsp:include page="icons.jsp" />

@@ -156,29 +156,100 @@
             box-shadow: 4px 4px 0px 0px #2D3436;
         }
 
-        .nb-label {
+        /* --- INTERACTIVE BANNER DROPDOWN --- */
+        .lp-banner-wrapper {
+            position: relative;
+            width: 100%;
+            z-index: 30;
+        }
+
+        .lp-banner-btn {
+            width: 100%;
+            background-color: #FFFFFF;
+            border: 3px solid #2D3436;
+            border-radius: 28px;
+            padding: 24px 28px;
+            box-shadow: 4px 4px 0px 0px #2D3436;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s ease;
+        }
+
+        .lp-banner-btn:hover {
+            background-color: #FFFDF9;
+            transform: translate(-1px, -1px);
+            box-shadow: 5px 5px 0px 0px #2D3436;
+        }
+
+        .lp-chevron-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2.5px solid #2D3436;
+            background-color: #FAF5EF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2D3436;
+            flex-shrink: 0;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .lp-banner-wrapper.open .lp-chevron-circle {
+            transform: rotate(180deg);
+            background-color: #FFD02C;
+        }
+
+        .lp-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            background-color: #FFFFFF;
+            border: 3px solid #2D3436;
+            border-radius: 24px;
+            box-shadow: 6px 6px 0px 0px #2D3436;
+            padding: 18px 20px;
+            z-index: 50;
+            display: none;
+        }
+
+        .lp-dropdown-menu.show {
             display: block;
-            font-weight: 900;
-            font-size: 0.95rem;
+        }
+
+        .lp-child-option {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border: 2.5px solid transparent;
+            border-radius: 16px;
+            background-color: #FFFFFF;
+            text-decoration: none;
             color: #2D3436;
             margin-bottom: 8px;
+            transition: all 0.15s ease;
         }
-        .nb-select {
-            width: 100%;
-            padding: 12px 20px;
-            border: 2.5px solid #2D3436;
-            border-radius: 999px;
-            background-color: #FFFFFF;
-            font-weight: 800;
-            font-size: 0.95rem;
-            color: #2D3436;
-            box-shadow: 2px 2px 0px 0px #2D3436;
-            cursor: pointer;
-            outline: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232D3436' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 20px center;
+
+        .lp-child-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .lp-child-option:hover {
+            border-color: #2D3436;
+            background-color: #FFF9E6;
+        }
+
+        .lp-child-option.active {
+            background-color: #FEF08A;
+            border-color: #2D3436;
+            box-shadow: 3px 3px 0px 0px #2D3436;
         }
 
         .nb-btn {
@@ -260,51 +331,67 @@
         <div class="app-content-body">
             <div class="nb-container">
 
-                <!-- CARD 1: CLASS & STUDENT NAME SELECTORS (PURE JAVA LOOP) -->
-                <div class="nb-card">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                <!-- CARD 2: INTERACTIVE CONSOLE HEADER WITH DROPDOWN -->
+                <div class="lp-banner-wrapper" id="lpBannerWrapper">
+                    <button type="button" class="lp-banner-btn" onclick="toggleLpDropdown()">
                         <div>
-                            <label class="nb-label">Class</label>
-                            <select class="nb-select" disabled>
-                                <option><%= activeStudent.getStudentClass() != null ? activeStudent.getStudentClass() : "Kindergarten 3B" %></option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="nb-label">Student Name</label>
-                            <select class="nb-select" onchange="location.href='<%= request.getContextPath() %>/learningProgress.jsp?studentId=' + this.value">
-                                <% for (Student s : dropdownStudents) { %>
-                                    <option value="<%= s.getStudentID() %>" <%= (s.getStudentID() == activeStudent.getStudentID()) ? "selected" : "" %>>
-                                        <%= s.getStudentName() %>
-                                    </option>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+                                <% if (isParent) { %>
+                                    <span class="nb-badge-pink">PARENT PROGRESS PORTAL</span>
+                                <% } else { %>
+                                    <span class="nb-badge-yellow">TEACHER ASSESSMENT CONSOLE</span>
                                 <% } %>
-                            </select>
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #64748B;">
+                                    Class: <%= activeStudent.getStudentClass() %> · Student ID: #<%= activeStudent.getStudentID() %>
+                                </span>
+                            </div>
+                            <h2 style="margin: 0; font-size: 1.8rem; font-weight: 900; letter-spacing: -0.5px;">
+                                Learning Progress: <%= activeStudent.getStudentName() %>
+                            </h2>
+                            <p style="margin: 6px 0 0 0; color: #64748B; font-size: 0.88rem; font-weight: 600; max-width: 650px;">
+                                <% if (isParent) { %>
+                                    Track your child's reading, writing, and early counting developmental milestones and educator observations.
+                                <% } else { %>
+                                    Evaluate reading, writing, and early counting milestones in real time. Log observations, calibrate domain benchmarks, and generate progress reports.
+                                <% } %>
+                            </p>
                         </div>
-                    </div>
-                </div>
 
-                <!-- CARD 2: CONSOLE HEADER -->
-                <div class="nb-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-                    <div>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                            <% if (isParent) { %>
-                                <span class="nb-badge-pink">PARENT PROGRESS PORTAL</span>
-                            <% } else { %>
-                                <span class="nb-badge-yellow">TEACHER ASSESSMENT CONSOLE</span>
-                            <% } %>
-                            <span style="font-size: 0.8rem; font-weight: 700; color: #64748B;">
-                                Class: <%= activeStudent.getStudentClass() %> · Student ID: #<%= activeStudent.getStudentID() %>
-                            </span>
+                        <div class="lp-chevron-circle" title="<%= isParent ? "Pilih anak berdaftar" : "Pilih murid" %>">
+                            <%= IconUtil.icon("ChevronDown", "icon-md") %>
                         </div>
-                        <h2 style="margin: 0; font-size: 1.8rem; font-weight: 900; letter-spacing: -0.5px;">
-                            Learning Progress: <%= activeStudent.getStudentName() %>
-                        </h2>
-                        <p style="margin: 6px 0 0 0; color: #64748B; font-size: 0.88rem; font-weight: 600; max-width: 650px;">
-                            <% if (isParent) { %>
-                                Track your child's reading, writing, and early counting developmental milestones and educator observations.
-                            <% } else { %>
-                                Evaluate reading, writing, and early counting milestones in real time. Log observations, calibrate domain benchmarks, and generate progress reports.
-                            <% } %>
+                    </button>
+
+                    <!-- DROPDOWN SENARAI ANAK / MURID -->
+                    <div class="lp-dropdown-menu" id="lpDropdownMenu">
+                        <p style="font-size: 11px; font-weight: 900; color: #64748B; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 12px 4px;">
+                            <%= isParent ? "PILIH ANAK BERDAFTAR" : "PILIH MURID" %> (<%= dropdownStudents.size() %>)
                         </p>
+
+                        <% for (Student st : dropdownStudents) { 
+                            boolean isSelected = (st.getStudentID() == activeStudent.getStudentID());
+                        %>
+                            <a href="?studentId=<%= st.getStudentID() %>" 
+                               class="lp-child-option <%= isSelected ? "active" : "" %>">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="width: 38px; height: 38px; border-radius: 50%; background-color: <%= isSelected ? "#FFD02C" : "#FAF5EF" %>; border: 2px solid #2D3436; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <%= IconUtil.icon("User", "icon-sm") %>
+                                    </span>
+                                    <div>
+                                        <div style="font-size: 15px; font-weight: 900; color: #2D3436;">
+                                            <%= st.getStudentName() %>
+                                        </div>
+                                        <div style="font-size: 12px; font-weight: 600; color: #64748B;">
+                                            <%= st.getStudentClass() %> · Umur: <%= st.getStudentAge() %> tahun · ID: #<%= st.getStudentID() %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <% if (isSelected) { %>
+                                    <span style="width: 14px; height: 14px; border-radius: 50%; background-color: #2D3436; display: inline-block; flex-shrink: 0;"></span>
+                                <% } %>
+                            </a>
+                        <% } %>
                     </div>
                 </div>
 
@@ -359,7 +446,7 @@
                                             </span>
                                         </div>
                                         <p style="margin: 6px 0; font-size: 0.83rem; color: #1E293B; font-weight: 700;">
-                                            <strong>Fokus & Topik:</strong> Pengecaman Nombor & Pembilangan Objek (1-30) · Kawalan Motor Halus · Penguasaan Fonik
+                                            <strong>Fokus &amp; Topik:</strong> Pengecaman Nombor &amp; Pembilangan Objek (1-30) · Kawalan Motor Halus · Penguasaan Fonik
                                         </p>
                                     </td>
                                     <td style="vertical-align: top; text-align: center;">
@@ -398,6 +485,26 @@
         </div>
     </main>
 </div>
+
+<script>
+    function toggleLpDropdown() {
+        const wrapper = document.getElementById('lpBannerWrapper');
+        const menu = document.getElementById('lpDropdownMenu');
+        if (wrapper && menu) {
+            wrapper.classList.toggle('open');
+            menu.classList.toggle('show');
+        }
+    }
+
+    window.addEventListener('click', function(event) {
+        if (!event.target.closest('#lpBannerWrapper')) {
+            const wrapper = document.getElementById('lpBannerWrapper');
+            const menu = document.getElementById('lpDropdownMenu');
+            if (wrapper) wrapper.classList.remove('open');
+            if (menu) menu.classList.remove('show');
+        }
+    });
+</script>
 
 <jsp:include page="icons.jsp" />
 </body>

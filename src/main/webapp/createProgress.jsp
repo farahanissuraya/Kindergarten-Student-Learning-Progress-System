@@ -1,7 +1,83 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page import="bean.Student"%>
 <%@ page import="bean.LearningProgress"%>
-<%@ page import="java.util.List"%>
+<%@ page import="util.DatabaseConnection"%>
+<%@ page import="util.IconUtil"%>
+<%@ page import="java.sql.*"%>
+<%@ page import="java.util.*"%>
+
+<%
+    List<Student> oracleStudents = new ArrayList<>();
+    Set<String> oracleClasses = new LinkedHashSet<>();
+    Map<Integer, String> parentNameMap = new HashMap<>();
+
+    int reqStudentId = -1;
+    String paramSid = request.getParameter("studentId");
+    if (paramSid == null || paramSid.isEmpty()) paramSid = request.getParameter("studentID");
+    if (paramSid != null && !paramSid.isEmpty()) {
+        try { reqStudentId = Integer.parseInt(paramSid); } catch (Exception ignored) {}
+    }
+
+    try (Connection conn = DatabaseConnection.getConnection()) {
+        if (conn != null) {
+            String sql = "select s.studentID, s.studentName, s.studentAge, s.studentClass, p.parentName " +
+                         "from student s " +
+                         "left join parent p on s.parentID = p.parentID " +
+                         "order by s.studentClass asc, s.studentName asc";
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+
+                while (rs.next()) {
+                    Student st = new Student();
+                    int sid = rs.getInt("studentID");
+                    st.setStudentID(sid);
+                    st.setStudentName(rs.getString("studentName"));
+                    st.setStudentAge(rs.getInt("studentAge"));
+
+                    String sclass = rs.getString("studentClass");
+                    if (sclass == null || sclass.trim().isEmpty()) {
+                        sclass = "Kindergarten 3B";
+                    } else {
+                        sclass = sclass.trim();
+                    }
+                    st.setStudentClass(sclass);
+
+                    String pname = rs.getString("parentName");
+                    parentNameMap.put(sid, (pname != null && !pname.trim().isEmpty()) ? pname.trim() : "-");
+
+                    oracleStudents.add(st);
+                    oracleClasses.add(sclass);
+                }
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    Student initialStudent = oracleStudents.isEmpty() ? null : oracleStudents.get(0);
+    if (reqStudentId != -1) {
+        for (Student st : oracleStudents) {
+            if (st.getStudentID() == reqStudentId) {
+                initialStudent = st;
+                break;
+            }
+        }
+    }
+
+    String initialClass = (initialStudent != null) ? initialStudent.getStudentClass() : "Kindergarten 3B";
+    int initialStudentId = (initialStudent != null) ? initialStudent.getStudentID() : 1;
+    int initialAge = (initialStudent != null) ? initialStudent.getStudentAge() : 5;
+    String initialParent = parentNameMap.getOrDefault(initialStudentId, "-");
+
+    request.setAttribute("oracleStudents", oracleStudents);
+    request.setAttribute("oracleClasses", oracleClasses);
+    request.setAttribute("parentNameMap", parentNameMap);
+    request.setAttribute("initialClass", initialClass);
+    request.setAttribute("initialStudentId", initialStudentId);
+    request.setAttribute("initialAge", initialAge);
+    request.setAttribute("initialParent", initialParent);
+%>
 
 <!DOCTYPE html>
 <html lang="ms">
@@ -9,6 +85,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Borang Pentaksiran Komprehensif - Keedflix Centre</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
     
     <style>
         /* ==========================================================================
@@ -220,6 +297,19 @@
         .checked-coral .check-box { background: var(--coral-accent); color: #FFF; }
         .checked-mint .check-box { background: var(--mint-accent); }
 
+        .btn-del-crit {
+            background: transparent;
+            border: none;
+            color: #94A3B8;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 6px;
+        }
+        .btn-del-crit:hover { color: #EF4444; background-color: #FEE2E2; }
+
         /* RATING SCALE 1 - 5 GRID */
         .scale-selector-container {
             background-color: var(--bg-canvas);
@@ -292,7 +382,7 @@
         <div class="app-content-body">
             <div class="nb-wrapper">
                 <form action="${pageContext.request.contextPath}/createProgress" method="POST" id="progressForm">
-                    <input type="hidden" name="studentID" id="formStudentID" value="${editingRecord != null ? editingRecord.studentID : 1}">
+                    <input type="hidden" name="studentID" id="formStudentID" value="${editingRecord != null ? editingRecord.studentID : initialStudentId}">
                     <input type="hidden" name="editProgressID" value="${editingRecord != null ? editingRecord.progressID : 0}">
                     <input type="hidden" name="activeDomainFilter" id="activeDomainFilter" value="All">
 
@@ -300,7 +390,8 @@
                     <div class="nb-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 14px;">
                             <a href="${pageContext.request.contextPath}/learningProgress" class="nb-btn">
-                                ← Kembali
+                                <%= IconUtil.icon("ArrowLeft", "icon-xs") %>
+                                <span>Kembali</span>
                             </a>
                             <div>
                                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 4px;">
@@ -312,62 +403,103 @@
                                 </h1>
                             </div>
                         </div>
-                        <div style="font-size: 0.8rem; font-weight: 800; color: #64748B;">
-                            Penilai: <strong style="color: var(--border-dark);">${editingRecord != null ? editingRecord.assessorName : 'Ms. Clara Davis'}</strong>
-                        </div>
                     </div>
 
-                    <!-- STUDENT & DATE CONTEXT SELECTOR CARD -->
+                    <!-- STUDENT, CLASS & DATE CONTEXT SELECTOR CARD (ORACLE DB SYNCED) -->
                     <div class="nb-card" style="margin-top: 16px;">
-                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px;">
-                            <div style="background: #FFF; border: 2px solid var(--border-dark); border-radius: 18px; padding: 12px 16px; box-shadow: var(--shadow-sm); display: flex; gap: 12px; align-items: center;">
-                                <div style="width: 44px; height: 44px; background: var(--yellow-accent); border: 2px solid var(--border-dark); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; box-shadow: var(--shadow-sm);">
-                                    🦁
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; align-items: start;">
+                            
+                            <!-- Kotak Kiri: Pilihan Kelas + Sasaran Murid Dinilai -->
+                            <div style="background: #FFF; border: 2px solid var(--border-dark); border-radius: 18px; padding: 14px 16px; box-shadow: var(--shadow-sm); display: flex; gap: 14px; align-items: flex-start;">
+                                <div style="width: 44px; height: 44px; background: var(--yellow-accent); border: 2px solid var(--border-dark); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: var(--border-dark); flex-shrink: 0; box-shadow: var(--shadow-sm); margin-top: 4px;">
+                                    <%= IconUtil.icon("Smile", "icon-md") %>
                                 </div>
-                                <div style="flex-grow: 1;">
-                                    <label style="font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: #64748B; display: block; margin-bottom: 2px;">
-                                        SASARAN MURID DINILAI
-                                    </label>
-                                    <select id="studentSelect" class="nb-select" onchange="updateStudentContext(this)">
-                                        <c:forEach var="st" items="${students}">
-                                            <option value="${st.studentID}" data-age="${st.studentAge}" data-parent="${st.parentName}">
-                                                ${st.studentName} — ${st.studentClass} (${st.studentAge} Years, 4 Months)
-                                            </option>
-                                        </c:forEach>
-                                        <option value="1" data-age="5" data-parent="Encik Ahmad" selected>Leo Vance — Kindergarten 3B (5 Years, 4 Months)</option>
-                                    </select>
-                                    <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center; flex-wrap: wrap;">
-                                        <span class="nb-badge badge-target">🎯 SASARAN UMUR 5 TAHUN: SKALA 4: MAHIR (PROFICIENT)</span>
-                                        <span style="font-size: 0.7rem; font-weight: 600; color: #475569;">Ibu Bapa: <strong id="lblParent">Encik Ahmad</strong></span>
+                                
+                                <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px;">
+                                    <!-- Dropdown 1: Pilihan Kelas dari Oracle -->
+                                    <div>
+                                        <label style="font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: #64748B; display: block; margin-bottom: 4px;">
+                                            PILIHAN KELAS
+                                        </label>
+                                        <select id="classSelect" class="nb-select" onchange="filterStudentsByClass()">
+                                            <option value="ALL">Semua Kelas (${oracleStudents.size()} Murid)</option>
+                                            <c:forEach var="cls" items="${oracleClasses}">
+                                                <option value="${cls}" ${cls == initialClass ? 'selected' : ''}>${cls}</option>
+                                            </c:forEach>
+                                        </select>
+                                    </div>
+
+                                    <!-- Dropdown 2: Sasaran Murid Dinilai dari Oracle -->
+                                    <div>
+                                        <label style="font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: #64748B; display: block; margin-bottom: 4px;">
+                                            SASARAN MURID DINILAI
+                                        </label>
+                                        <select id="studentSelect" class="nb-select" onchange="updateStudentContext(this)">
+										    <c:forEach var="st" items="${oracleStudents}">
+										        <option value="${st.studentID}"
+										                data-class="${st.studentClass}"
+										                data-age="${st.studentAge}"
+										                data-parent="${parentNameMap[st.studentID]}"
+										                ${st.studentID == initialStudentId ? 'selected' : ''}>
+										            ${st.studentName} — ${st.studentClass} (${st.studentAge} Years)
+										        </option>
+										    </c:forEach>
+										</select>
+                                    </div>
+
+                                    <!-- Badge Sasaran Umur & Nama Ibu Bapa -->
+                                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                        <span class="nb-badge badge-target">
+                                            <%= IconUtil.icon("Target", "icon-xs") %>
+                                            <span id="lblTargetAge">SASARAN UMUR ${initialAge} TAHUN: SKALA 4: MAHIR (PROFICIENT)</span>
+                                        </span>
+                                        <span style="font-size: 0.72rem; font-weight: 600; color: #475569;">
+                                            Ibu Bapa: <strong id="lblParent" style="color: var(--border-dark);">${initialParent}</strong>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div style="background: #FFF; border: 2px solid var(--border-dark); border-radius: 18px; padding: 12px 16px; box-shadow: var(--shadow-sm);">
-                                <label style="font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: #64748B; display: block; margin-bottom: 4px;">
-                                    📅 TARIKH PENTAKSIRAN
+                            <!-- Kotak Tengah: Tarikh Pentaksiran -->
+                            <div style="background: #FFF; border: 2px solid var(--border-dark); border-radius: 18px; padding: 14px 16px; box-shadow: var(--shadow-sm);">
+                                <label style="font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: #64748B; display: flex; align-items: center; gap: 5px; margin-bottom: 6px;">
+                                    <%= IconUtil.icon("Calendar", "icon-xs") %>
+                                    <span>TARIKH PENTAKSIRAN</span>
                                 </label>
-                                <input type="date" name="progressDate" class="nb-input" value="2026-11-03" required>
+                                <input type="date" name="progressDate" class="nb-input" value="2026-11-17" required>
                             </div>
 
-                            <div style="background: #FFF; border: 2px solid var(--border-dark); border-radius: 18px; padding: 12px 16px; box-shadow: var(--shadow-sm);">
-                                <label style="font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: #64748B; display: block; margin-bottom: 4px;">
-                                    🧑‍🏫 GURU PENILAI (ASSESSOR)
+                            <!-- Kotak Kanan: Guru Penilai -->
+                            <div style="background: #FFF; border: 2px solid var(--border-dark); border-radius: 18px; padding: 14px 16px; box-shadow: var(--shadow-sm);">
+                                <label style="font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: #64748B; display: flex; align-items: center; gap: 5px; margin-bottom: 6px;">
+                                    <%= IconUtil.icon("UserCheck", "icon-xs") %>
+                                    <span>GURU PENILAI (ASSESSOR)</span>
                                 </label>
-                                <input type="text" name="assessorName" class="nb-input" value="Ms. Clara Davis" required>
+                                <input type="text" name="assessorName" class="nb-input" value="${not empty sessionScope.userName ? sessionScope.userName : 'Ms. Clara Davis'}" required>
                             </div>
+
                         </div>
 
                         <!-- DOMAIN CONTAINER FILTER -->
                         <div class="filter-strip">
                             <div style="font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 6px;">
-                                📚 PILIHAN PAPARAN CONTAINER:
+                                <%= IconUtil.icon("Layers", "icon-xs") %>
+                                <span>PILIHAN PAPARAN CONTAINER:</span>
                             </div>
                             <div class="filter-btn-group">
                                 <button type="button" class="nb-btn nb-btn-dark" onclick="filterDomain('All', this)">Semua 3 Teras (All 3)</button>
-                                <button type="button" class="nb-btn" onclick="filterDomain('Reading', this)">📖 1. Reading</button>
-                                <button type="button" class="nb-btn" onclick="filterDomain('Writing', this)">✏️ 2. Writing</button>
-                                <button type="button" class="nb-btn" onclick="filterDomain('Counting', this)"># 3. Counting</button>
+                                <button type="button" class="nb-btn" onclick="filterDomain('Reading', this)">
+                                    <%= IconUtil.icon("BookOpen", "icon-xs") %>
+                                    <span>1. Reading</span>
+                                </button>
+                                <button type="button" class="nb-btn" onclick="filterDomain('Writing', this)">
+                                    <%= IconUtil.icon("PenTool", "icon-xs") %>
+                                    <span>2. Writing</span>
+                                </button>
+                                <button type="button" class="nb-btn" onclick="filterDomain('Counting', this)">
+                                    <%= IconUtil.icon("Hash", "icon-xs") %>
+                                    <span>3. Counting</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -376,20 +508,20 @@
                     <div class="nb-card" style="margin-top: 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(45, 52, 54, 0.1); padding-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 32px; height: 32px; border-radius: 10px; background: #FFE4E6; border: 2px solid var(--border-dark); display: flex; align-items: center; justify-content: center; font-size: 14px;">
-                                    👁️
+                                <div style="width: 32px; height: 32px; border-radius: 10px; background: #FFE4E6; border: 2px solid var(--border-dark); display: flex; align-items: center; justify-content: center; color: #E11D48;">
+                                    <%= IconUtil.icon("Eye", "icon-xs") %>
                                 </div>
                                 <div>
                                     <h3 style="font-size: 0.95rem; font-weight: 900; display: flex; align-items: center; gap: 6px;">
-                                        Pratonton Kad Rekod 3 Teras & Radar Chart (Live Preview)
+                                        Pratonton Kad Rekod 3 Teras &amp; Radar Chart (Live Preview)
                                         <span style="width: 8px; height: 8px; background: #10B981; border-radius: 50%; display: inline-block;"></span>
                                     </h3>
                                     <p style="font-size: 0.7rem; color: #64748B; font-weight: 600;">
-                                        Peringatan: Umur <strong>5 tahun</strong> disasarkan mencapai <strong>Skala 4: Mahir (Proficient)</strong>. Jurang penilaian akan mencetuskan amaran kepada guru dan ibu bapa.
+                                        Peringatan: Umur <strong id="lblPreviewAge">${initialAge} tahun</strong> disasarkan mencapai <strong>Skala 4: Mahir (Proficient)</strong>. Jurang penilaian akan mencetuskan amaran kepada guru dan ibu bapa.
                                     </p>
                                 </div>
                             </div>
-                            <span class="nb-badge" style="background: #FFF; border: 2px solid var(--border-dark); box-shadow: var(--shadow-sm);">RADAR & ALERT SYNC</span>
+                            <span class="nb-badge" style="background: #FFF; border: 2px solid var(--border-dark); box-shadow: var(--shadow-sm);">RADAR &amp; ALERT SYNC</span>
                         </div>
 
                         <!-- 3 Mini Cards Grid -->
@@ -398,11 +530,17 @@
                             <div class="preview-card">
                                 <div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                        <span class="nb-badge badge-yellow">📖 READING</span>
-                                        <span class="nb-badge badge-success">✓ CAPAI SASARAN</span>
+                                        <span class="nb-badge badge-yellow">
+                                            <%= IconUtil.icon("BookOpen", "icon-xs") %>
+                                            <span>READING</span>
+                                        </span>
+                                        <span class="nb-badge badge-success">
+                                            <%= IconUtil.icon("Check", "icon-xs") %>
+                                            <span>CAPAI SASARAN</span>
+                                        </span>
                                     </div>
                                     <h4 style="font-size: 0.85rem; font-weight: 900; margin-bottom: 4px;" id="prevReadingTitle">
-                                        Penguasaan Fonik & Pengecaman Bunyi Huruf (Phonics)
+                                        Penguasaan Fonik &amp; Pengecaman Bunyi Huruf (Phonics)
                                     </h4>
                                     <p style="font-size: 0.7rem; color: #475569; font-weight: 600;">
                                         Penguasaan: <strong id="prevReadingCount">4/5</strong> kriteria standard konstruk KSPK.
@@ -418,11 +556,17 @@
                             <div class="preview-card">
                                 <div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                        <span class="nb-badge badge-coral">✏️ WRITING</span>
-                                        <span class="nb-badge badge-success">✓ CAPAI SASARAN</span>
+                                        <span class="nb-badge badge-coral">
+                                            <%= IconUtil.icon("PenTool", "icon-xs") %>
+                                            <span>WRITING</span>
+                                        </span>
+                                        <span class="nb-badge badge-success">
+                                            <%= IconUtil.icon("Check", "icon-xs") %>
+                                            <span>CAPAI SASARAN</span>
+                                        </span>
                                     </div>
                                     <h4 style="font-size: 0.85rem; font-weight: 900; margin-bottom: 4px;" id="prevWritingTitle">
-                                        Kawalan Motor Halus & Genggaman Pensel (Tripod Grip)
+                                        Kawalan Motor Halus &amp; Genggaman Pensel (Tripod Grip)
                                     </h4>
                                     <p style="font-size: 0.7rem; color: #475569; font-weight: 600;">
                                         Penguasaan: <strong id="prevWritingCount">4/5</strong> kriteria standard konstruk KSPK.
@@ -438,11 +582,17 @@
                             <div class="preview-card">
                                 <div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                        <span class="nb-badge badge-mint"># COUNTING</span>
-                                        <span class="nb-badge badge-success">✓ CAPAI SASARAN</span>
+                                        <span class="nb-badge badge-mint">
+                                            <%= IconUtil.icon("Hash", "icon-xs") %>
+                                            <span>COUNTING</span>
+                                        </span>
+                                        <span class="nb-badge badge-success">
+                                            <%= IconUtil.icon("Check", "icon-xs") %>
+                                            <span>CAPAI SASARAN</span>
+                                        </span>
                                     </div>
                                     <h4 style="font-size: 0.85rem; font-weight: 900; margin-bottom: 4px;" id="prevCountingTitle">
-                                        Pengecaman Nombor & Pembilangan Objek (1-30)
+                                        Pengecaman Nombor &amp; Pembilangan Objek (1-30)
                                     </h4>
                                     <p style="font-size: 0.7rem; color: #475569; font-weight: 600;">
                                         Penguasaan: <strong id="prevCountingCount">4/5</strong> kriteria standard konstruk KSPK.
@@ -460,18 +610,21 @@
                     <div class="nb-card domain-section" id="sectionReading" style="margin-top: 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 38px; height: 38px; background: var(--yellow-accent); border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: var(--shadow-sm);">
-                                    📖
+                                <div style="width: 38px; height: 38px; background: var(--yellow-accent); border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--border-dark); box-shadow: var(--shadow-sm);">
+                                    <%= IconUtil.icon("BookOpen", "icon-sm") %>
                                 </div>
                                 <div>
                                     <div style="display: flex; gap: 6px; align-items: center;">
                                         <span class="nb-badge badge-yellow">TERAS 1</span>
-                                        <h2 style="font-size: 1.05rem; font-weight: 900;">Reading (Fonik & Kemahiran Membaca)</h2>
+                                        <h2 style="font-size: 1.05rem; font-weight: 900;">Reading (Fonik &amp; Kemahiran Membaca)</h2>
                                     </div>
-                                    <p style="font-size: 0.7rem; color: #64748B;">Pentaksiran penguasaan vokal, konsonan, suku kata terbuka (KV) & pemahaman teks bacaan.</p>
+                                    <p style="font-size: 0.7rem; color: #64748B;">Pentaksiran penguasaan vokal, konsonan, suku kata terbuka (KV) &amp; pemahaman teks bacaan.</p>
                                 </div>
                             </div>
-                            <button type="button" class="nb-btn" onclick="resetRubric('reading')">🔄 Reset Rubrik Reading</button>
+                            <button type="button" class="nb-btn" onclick="resetRubric('reading')">
+                                <%= IconUtil.icon("RotateCcw", "icon-xs") %>
+                                <span>Reset Rubrik Reading</span>
+                            </button>
                         </div>
 
                         <label style="font-size: 0.75rem; font-weight: 900; display: block; margin-bottom: 4px;">Tajuk / Topik Pentaksiran Reading <span style="color:red;">*</span></label>
@@ -488,59 +641,78 @@
                                     <p style="font-size: 0.7rem; color: #92400E;">Cadangan skala automatik: <strong>Skala 4 / 5</strong></p>
                                 </div>
                             </div>
-                            <button type="button" class="nb-btn nb-btn-yellow" onclick="applySuggestedScale('reading')">✨ Gunakan Skor Cadangan</button>
+                            <button type="button" class="nb-btn nb-btn-yellow" onclick="applySuggestedScale('reading')">
+                                <%= IconUtil.icon("Sparkles", "icon-xs") %>
+                                <span>Gunakan Skor Cadangan</span>
+                            </button>
                         </div>
 
                         <!-- Checklist Items -->
                         <div id="readingCriteriaList">
                             <div class="checklist-item checked-yellow" onclick="toggleCriteria(this, 'reading')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">1. Mengecam dan membunyikan huruf vokal (a, e, i, o, u) dengan tepat</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'reading')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item checked-yellow" onclick="toggleCriteria(this, 'reading')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">2. Membunyikan konsonan asas secara fonik tanpa kekeliruan</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'reading')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item checked-yellow" onclick="toggleCriteria(this, 'reading')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">3. Menggabungkan bunyi konsonan dan vokal menjadi suku kata terbuka (KV)</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'reading')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item checked-yellow" onclick="toggleCriteria(this, 'reading')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">4. Membaca perkataan mudah suku kata tertutup (CVC / KVK)</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'reading')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item" onclick="toggleCriteria(this, 'reading')">
                                 <div style="display: flex; align-items: center;">
                                     <div class="check-box"></div>
                                     <span style="font-size: 0.8rem; font-weight: 700; color: #475569;">5. Mendengar dan mengulang sebutan intonasi bacaan dengan yakin</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'reading')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                         </div>
 
                         <!-- Custom Criteria Add Input -->
                         <div style="display: flex; gap: 8px; margin-top: 10px;">
                             <input type="text" id="customReadingInput" class="nb-input" placeholder="Tambah kriteria bacaan khusus...">
-                            <button type="button" class="nb-btn nb-btn-yellow" onclick="addCustomCriteria('reading')">Tambah</button>
+                            <button type="button" class="nb-btn nb-btn-yellow" onclick="addCustomCriteria('reading')">
+                                <%= IconUtil.icon("Plus", "icon-xs") %>
+                                <span>Tambah</span>
+                            </button>
                         </div>
 
                         <!-- Rating Scale Selector (1-5) -->
                         <div class="scale-selector-container">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
-                                    <label style="font-size: 0.75rem; font-weight: 900; display: block;">🏅 Skala Penilaian Perkembangan (Rating Scale 1 - 5)</label>
+                                    <label style="font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 5px;">
+                                        <%= IconUtil.icon("Award", "icon-xs") %>
+                                        <span>Skala Penilaian Perkembangan (Rating Scale 1 - 5)</span>
+                                    </label>
                                     <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: 8.0/10).</p>
                                 </div>
                                 <div style="display: flex; gap: 6px;">
@@ -562,7 +734,10 @@
                             </div>
 
                             <div style="background: var(--emerald-bg); border: 1px solid var(--emerald-border); border-radius: 12px; padding: 8px 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: #065F46;">
-                                <span>✓ Mencapai Penanda Aras Umur (5 Tahun ➔ Skala 4: Mahir (Proficient))</span>
+                                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                    <%= IconUtil.icon("CheckCircle", "icon-xs") %>
+                                    <span>Mencapai Penanda Aras Umur (Skala 4: Mahir (Proficient))</span>
+                                </span>
                                 <span class="nb-badge badge-success">Sasaran Tercapai</span>
                             </div>
                         </div>
@@ -572,18 +747,21 @@
                     <div class="nb-card domain-section" id="sectionWriting" style="margin-top: 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 38px; height: 38px; background: var(--coral-accent); color:#FFF; border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: var(--shadow-sm);">
-                                    ✏️
+                                <div style="width: 38px; height: 38px; background: var(--coral-accent); color:#FFF; border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
+                                    <%= IconUtil.icon("PenTool", "icon-sm") %>
                                 </div>
                                 <div>
                                     <div style="display: flex; gap: 6px; align-items: center;">
                                         <span class="nb-badge badge-coral">TERAS 2</span>
-                                        <h2 style="font-size: 1.05rem; font-weight: 900;">Writing (Motor Halus & Kemahiran Menulis)</h2>
+                                        <h2 style="font-size: 1.05rem; font-weight: 900;">Writing (Motor Halus &amp; Kemahiran Menulis)</h2>
                                     </div>
                                     <p style="font-size: 0.7rem; color: #64748B;">Pentaksiran genggaman pensel tripod, kawalan koordinasi tangan-mata, dan pembentukan huruf.</p>
                                 </div>
                             </div>
-                            <button type="button" class="nb-btn" onclick="resetRubric('writing')">🔄 Reset Rubrik Writing</button>
+                            <button type="button" class="nb-btn" onclick="resetRubric('writing')">
+                                <%= IconUtil.icon("RotateCcw", "icon-xs") %>
+                                <span>Reset Rubrik Writing</span>
+                            </button>
                         </div>
 
                         <label style="font-size: 0.75rem; font-weight: 900; display: block; margin-bottom: 4px;">Tajuk / Topik Pentaksiran Writing <span style="color:red;">*</span></label>
@@ -600,59 +778,78 @@
                                     <p style="font-size: 0.7rem; color: #9F1239;">Cadangan skala automatik: <strong>Skala 4 / 5</strong></p>
                                 </div>
                             </div>
-                            <button type="button" class="nb-btn nb-btn-coral" onclick="applySuggestedScale('writing')">✨ Gunakan Skor Cadangan</button>
+                            <button type="button" class="nb-btn nb-btn-coral" onclick="applySuggestedScale('writing')">
+                                <%= IconUtil.icon("Sparkles", "icon-xs") %>
+                                <span>Gunakan Skor Cadangan</span>
+                            </button>
                         </div>
 
                         <!-- Checklist Items -->
                         <div id="writingCriteriaList">
                             <div class="checklist-item checked-coral" onclick="toggleCriteria(this, 'writing')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">1. Memegang pensel menggunakan genggaman dinamik tripod dengan selesa</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'writing')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item checked-coral" onclick="toggleCriteria(this, 'writing')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">2. Mengawal tekanan pensel pada kertas tanpa merosakkan lembaran</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'writing')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item checked-coral" onclick="toggleCriteria(this, 'writing')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">3. Menyambung garisan titik (lurus, beralun, zig-zag) dengan kemas</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'writing')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item checked-coral" onclick="toggleCriteria(this, 'writing')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">4. Melukis bentuk geometri asas dengan kawalan pergerakan tangan yang stabil</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'writing')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item" onclick="toggleCriteria(this, 'writing')">
                                 <div style="display: flex; align-items: center;">
                                     <div class="check-box"></div>
                                     <span style="font-size: 0.8rem; font-weight: 700; color: #475569;">5. Mengekalkan postur badan yang ergonomik semasa aktiviti menulis</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'writing')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                         </div>
 
                         <!-- Custom Criteria Add Input -->
                         <div style="display: flex; gap: 8px; margin-top: 10px;">
                             <input type="text" id="customWritingInput" class="nb-input" placeholder="Tambah kriteria penulisan khusus...">
-                            <button type="button" class="nb-btn nb-btn-coral" onclick="addCustomCriteria('writing')">Tambah</button>
+                            <button type="button" class="nb-btn nb-btn-coral" onclick="addCustomCriteria('writing')">
+                                <%= IconUtil.icon("Plus", "icon-xs") %>
+                                <span>Tambah</span>
+                            </button>
                         </div>
 
                         <!-- Rating Scale Selector (1-5) -->
                         <div class="scale-selector-container">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
-                                    <label style="font-size: 0.75rem; font-weight: 900; display: block;">🏅 Skala Penilaian Perkembangan (Rating Scale 1 - 5)</label>
+                                    <label style="font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 5px;">
+                                        <%= IconUtil.icon("Award", "icon-xs") %>
+                                        <span>Skala Penilaian Perkembangan (Rating Scale 1 - 5)</span>
+                                    </label>
                                     <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: 8.0/10).</p>
                                 </div>
                                 <div style="display: flex; gap: 6px;">
@@ -674,7 +871,10 @@
                             </div>
 
                             <div style="background: var(--emerald-bg); border: 1px solid var(--emerald-border); border-radius: 12px; padding: 8px 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: #065F46;">
-                                <span>✓ Mencapai Penanda Aras Umur (5 Tahun ➔ Skala 4: Mahir (Proficient))</span>
+                                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                    <%= IconUtil.icon("CheckCircle", "icon-xs") %>
+                                    <span>Mencapai Penanda Aras Umur (Skala 4: Mahir (Proficient))</span>
+                                </span>
                                 <span class="nb-badge badge-success">Sasaran Tercapai</span>
                             </div>
                         </div>
@@ -684,18 +884,21 @@
                     <div class="nb-card domain-section" id="sectionCounting" style="margin-top: 16px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 38px; height: 38px; background: var(--mint-accent); border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: var(--shadow-sm);">
-                                    #
+                                <div style="width: 38px; height: 38px; background: var(--mint-accent); border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--border-dark); box-shadow: var(--shadow-sm);">
+                                    <%= IconUtil.icon("Hash", "icon-sm") %>
                                 </div>
                                 <div>
                                     <div style="display: flex; gap: 6px; align-items: center;">
                                         <span class="nb-badge badge-mint">TERAS 3</span>
-                                        <h2 style="font-size: 1.05rem; font-weight: 900;">Counting (Nombor, Operasi & Bentuk Geometri)</h2>
+                                        <h2 style="font-size: 1.05rem; font-weight: 900;">Counting (Nombor, Operasi &amp; Bentuk Geometri)</h2>
                                     </div>
                                     <p style="font-size: 0.7rem; color: #64748B;">Pentaksiran pembilangan objek 1-ke-1, pengecaman angka, bentuk 2D dan operasi matematik awal.</p>
                                 </div>
                             </div>
-                            <button type="button" class="nb-btn" onclick="resetRubric('counting')">🔄 Reset Rubrik Counting</button>
+                            <button type="button" class="nb-btn" onclick="resetRubric('counting')">
+                                <%= IconUtil.icon("RotateCcw", "icon-xs") %>
+                                <span>Reset Rubrik Counting</span>
+                            </button>
                         </div>
 
                         <label style="font-size: 0.75rem; font-weight: 900; display: block; margin-bottom: 4px;">Tajuk / Topik Pentaksiran Counting <span style="color:red;">*</span></label>
@@ -712,59 +915,78 @@
                                     <p style="font-size: 0.7rem; color: #065F46;">Cadangan skala automatik: <strong>Skala 4 / 5</strong></p>
                                 </div>
                             </div>
-                            <button type="button" class="nb-btn nb-btn-mint" onclick="applySuggestedScale('counting')">✨ Gunakan Skor Cadangan</button>
+                            <button type="button" class="nb-btn nb-btn-mint" onclick="applySuggestedScale('counting')">
+                                <%= IconUtil.icon("Sparkles", "icon-xs") %>
+                                <span>Gunakan Skor Cadangan</span>
+                            </button>
                         </div>
 
                         <!-- Checklist Items -->
                         <div id="countingCriteriaList">
                             <div class="checklist-item checked-mint" onclick="toggleCriteria(this, 'counting')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">1. Menyebut turutan nombor 1 hingga 20+ secara lisan dengan lancar</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'counting')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item checked-mint" onclick="toggleCriteria(this, 'counting')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">2. Membilang objek konkrit dengan padanan satu-ke-satu (1-to-1 correspondence)</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'counting')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item checked-mint" onclick="toggleCriteria(this, 'counting')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">3. Memadankan simbol angka dengan kuantiti objek yang betul</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'counting')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item checked-mint" onclick="toggleCriteria(this, 'counting')">
                                 <div style="display: flex; align-items: center;">
-                                    <div class="check-box">✓</div>
+                                    <div class="check-box"><%= IconUtil.icon("Check", "icon-xs") %></div>
                                     <span style="font-size: 0.8rem; font-weight: 800;">4. Mengecam angka yang hilang dalam urutan nombor mudah</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'counting')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                             <div class="checklist-item" onclick="toggleCriteria(this, 'counting')">
                                 <div style="display: flex; align-items: center;">
                                     <div class="check-box"></div>
                                     <span style="font-size: 0.8rem; font-weight: 700; color: #475569;">5. Membezakan konsep kuantiti: "lebih banyak", "lebih sedikit", "sama banyak"</span>
                                 </div>
-                                <span style="color: #94A3B8; cursor: pointer;">🗑️</span>
+                                <button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, 'counting')" title="Padam kriteria">
+                                    <%= IconUtil.icon("Trash2", "icon-xs") %>
+                                </button>
                             </div>
                         </div>
 
                         <!-- Custom Criteria Add Input -->
                         <div style="display: flex; gap: 8px; margin-top: 10px;">
                             <input type="text" id="customCountingInput" class="nb-input" placeholder="Tambah kriteria pengiraan khusus...">
-                            <button type="button" class="nb-btn nb-btn-mint" onclick="addCustomCriteria('counting')">Tambah</button>
+                            <button type="button" class="nb-btn nb-btn-mint" onclick="addCustomCriteria('counting')">
+                                <%= IconUtil.icon("Plus", "icon-xs") %>
+                                <span>Tambah</span>
+                            </button>
                         </div>
 
                         <!-- Rating Scale Selector (1-5) -->
                         <div class="scale-selector-container">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div>
-                                    <label style="font-size: 0.75rem; font-weight: 900; display: block;">🏅 Skala Penilaian Perkembangan (Rating Scale 1 - 5)</label>
+                                    <label style="font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 5px;">
+                                        <%= IconUtil.icon("Award", "icon-xs") %>
+                                        <span>Skala Penilaian Perkembangan (Rating Scale 1 - 5)</span>
+                                    </label>
                                     <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: 8.0/10).</p>
                                 </div>
                                 <div style="display: flex; gap: 6px;">
@@ -786,7 +1008,10 @@
                             </div>
 
                             <div style="background: var(--emerald-bg); border: 1px solid var(--emerald-border); border-radius: 12px; padding: 8px 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: #065F46;">
-                                <span>✓ Mencapai Penanda Aras Umur (5 Tahun ➔ Skala 4: Mahir (Proficient))</span>
+                                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                    <%= IconUtil.icon("CheckCircle", "icon-xs") %>
+                                    <span>Mencapai Penanda Aras Umur (Skala 4: Mahir (Proficient))</span>
+                                </span>
                                 <span class="nb-badge badge-success">Sasaran Tercapai</span>
                             </div>
                         </div>
@@ -795,8 +1020,8 @@
                     <!-- HOME RECOMMENDATION TEXTAREA CARD -->
                     <div class="nb-card" style="margin-top: 16px;">
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <div style="width: 32px; height: 32px; border-radius: 10px; background: #EEF2FF; border: 2px solid var(--border-dark); display: flex; align-items: center; justify-content: center; font-size: 16px;">
-                                🤝
+                            <div style="width: 32px; height: 32px; border-radius: 10px; background: #EEF2FF; border: 2px solid var(--border-dark); display: flex; align-items: center; justify-content: center; color: #4338CA;">
+                                <%= IconUtil.icon("Home", "icon-xs") %>
                             </div>
                             <div>
                                 <h3 style="font-size: 0.95rem; font-weight: 900;">Cadangan Perkongsian Aktiviti di Rumah (Untuk Ibu Bapa)</h3>
@@ -809,13 +1034,16 @@
                     <!-- BOTTOM ACTION SUBMIT BAR -->
                     <div class="nb-card" style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div style="font-size: 0.75rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 8px;">
-                            <span style="color: var(--purple-accent); font-size: 1rem;">ℹ️</span>
-                            <span>Semua skor mencapai penanda aras umur 5 tahun (Skala 4: Mahir (Proficient)). Data akan terus dikemas kini ke Radar Chart.</span>
+                            <span style="color: var(--purple-accent); display: inline-flex; align-items: center;">
+                                <%= IconUtil.icon("Info", "icon-sm") %>
+                            </span>
+                            <span>Semua skor mencapai penanda aras umur (Skala 4: Mahir (Proficient)). Data akan terus dikemas kini ke Radar Chart.</span>
                         </div>
                         <div style="display: flex; gap: 12px;">
                             <a href="${pageContext.request.contextPath}/learningProgress" class="nb-btn">Batal</a>
                             <button type="submit" class="nb-btn nb-btn-yellow" style="padding: 10px 24px;">
-                                💾 Simpan Semua Rekod Pentaksiran (3 Teras)
+                                <%= IconUtil.icon("Save", "icon-xs") %>
+                                <span>Simpan Semua Rekod Pentaksiran (3 Teras)</span>
                             </button>
                         </div>
                     </div>
@@ -825,9 +1053,81 @@
     </main>
 </div>
 
+<!-- Template SVG tersembunyi untuk kriteria baharu yang ditambah melalui JS -->
+<template id="tplCheckIcon"><%= IconUtil.icon("Check", "icon-xs") %></template>
+<template id="tplTrashIcon"><%= IconUtil.icon("Trash2", "icon-xs") %></template>
+
 <!-- JAVASCRIPT LOGIC FOR DYNAMIC INTERACTIONS -->
 <script>
     const statusTextMap = { 1: "NOT STARTED", 2: "EMERGING", 3: "DEVELOPING", 4: "PROFICIENT", 5: "MASTERED" };
+    const allStudentOptions = [];
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const studentSelect = document.getElementById("studentSelect");
+        if (studentSelect) {
+            Array.from(studentSelect.options).forEach(opt => {
+                allStudentOptions.push({
+                    value: opt.value,
+                    text: opt.text,
+                    studentClass: opt.getAttribute("data-class") || "",
+                    age: opt.getAttribute("data-age") || "5",
+                    parent: opt.getAttribute("data-parent") || "-",
+                    selected: opt.selected
+                });
+            });
+            filterStudentsByClass(true);
+        }
+    });
+
+    function filterStudentsByClass(preserveInitial) {
+        const selectedClass = document.getElementById("classSelect").value;
+        const studentSelect = document.getElementById("studentSelect");
+        const targetId = preserveInitial ? document.getElementById("formStudentID").value : studentSelect.value;
+
+        studentSelect.innerHTML = "";
+
+        const filtered = allStudentOptions.filter(st =>
+            selectedClass === "ALL" || st.studentClass === selectedClass
+        );
+
+        if (filtered.length === 0) {
+            const emptyOpt = document.createElement("option");
+            emptyOpt.value = "";
+            emptyOpt.text = "Tiada murid berdaftar dalam kelas ini";
+            studentSelect.appendChild(emptyOpt);
+            document.getElementById("formStudentID").value = "";
+            document.getElementById("lblParent").innerText = "-";
+            return;
+        }
+
+        filtered.forEach(st => {
+            const opt = document.createElement("option");
+            opt.value = st.value;
+            opt.text = st.text;
+            opt.setAttribute("data-class", st.studentClass);
+            opt.setAttribute("data-age", st.age);
+            opt.setAttribute("data-parent", st.parent);
+            if (st.value === targetId) {
+                opt.selected = true;
+            }
+            studentSelect.appendChild(opt);
+        });
+
+        updateStudentContext(studentSelect);
+    }
+
+    function updateStudentContext(selectElem) {
+        if (!selectElem || selectElem.selectedIndex < 0) return;
+        const selectedOpt = selectElem.options[selectElem.selectedIndex];
+        const age = selectedOpt.getAttribute("data-age") || "5";
+
+        document.getElementById("formStudentID").value = selectElem.value;
+        document.getElementById("lblParent").innerText = selectedOpt.getAttribute("data-parent") || "-";
+        document.getElementById("lblTargetAge").innerText =
+            "SASARAN UMUR " + age + " TAHUN: SKALA 4: MAHIR (PROFICIENT)";
+        const prevAge = document.getElementById("lblPreviewAge");
+        if (prevAge) prevAge.innerText = age + " tahun";
+    }
 
     function selectScale(domain, val, colorTheme, btnElem) {
         document.getElementById(domain + '_scale').value = val;
@@ -849,11 +1149,56 @@
 
         if (itemElem.classList.contains(colorClass)) {
             itemElem.classList.remove(colorClass);
-            checkbox.innerText = '';
+            checkbox.innerHTML = '';
         } else {
             itemElem.classList.add(colorClass);
-            checkbox.innerText = '✓';
+            checkbox.innerHTML = document.getElementById('tplCheckIcon').innerHTML;
         }
+        updateCriteriaCount(domain);
+    }
+
+    function removeCriteria(event, btnElem, domain) {
+        event.stopPropagation();
+        const item = btnElem.closest('.checklist-item');
+        if (item) {
+            item.remove();
+            updateCriteriaCount(domain);
+        }
+    }
+
+    function addCustomCriteria(domain) {
+        const input = document.getElementById('custom' + capitalize(domain) + 'Input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const container = document.getElementById(domain + 'CriteriaList');
+        const count = container.querySelectorAll('.checklist-item').length + 1;
+        const colorClass = 'checked-' + (domain === 'reading' ? 'yellow' : domain === 'writing' ? 'coral' : 'mint');
+
+        const div = document.createElement('div');
+        div.className = 'checklist-item ' + colorClass;
+        div.setAttribute('onclick', "toggleCriteria(this, '" + domain + "')");
+        div.innerHTML =
+            '<div style="display: flex; align-items: center;">' +
+                '<div class="check-box">' + document.getElementById('tplCheckIcon').innerHTML + '</div>' +
+                '<span style="font-size: 0.8rem; font-weight: 800;">' + count + '. ' + escapeHtml(text) + '</span>' +
+            '</div>' +
+            '<button type="button" class="btn-del-crit" onclick="removeCriteria(event, this, \'' + domain + '\')" title="Padam kriteria">' +
+                document.getElementById('tplTrashIcon').innerHTML +
+            '</button>';
+
+        container.appendChild(div);
+        input.value = '';
+        updateCriteriaCount(domain);
+    }
+
+    function resetRubric(domain) {
+        const container = document.getElementById(domain + 'CriteriaList');
+        const colorClass = 'checked-' + (domain === 'reading' ? 'yellow' : domain === 'writing' ? 'coral' : 'mint');
+        container.querySelectorAll('.checklist-item').forEach(item => {
+            item.classList.remove(colorClass);
+            item.querySelector('.check-box').innerHTML = '';
+        });
         updateCriteriaCount(domain);
     }
 
@@ -883,7 +1228,9 @@
 
         const colorTheme = domain === 'reading' ? 'yellow' : domain === 'writing' ? 'coral' : 'mint';
         const targetBtn = document.querySelectorAll('#section' + capitalize(domain) + ' .scale-btn')[suggested - 1];
-        selectScale(domain, suggested, colorTheme, targetBtn);
+        if (targetBtn) {
+            selectScale(domain, suggested, colorTheme, targetBtn);
+        }
     }
 
     function filterDomain(domain, btnElem) {
@@ -914,15 +1261,17 @@
         });
     }
 
-    function updateStudentContext(selectElem) {
-        const selectedOpt = selectElem.options[selectElem.selectedIndex];
-        document.getElementById('formStudentID').value = selectElem.value;
-        document.getElementById('lblParent').innerText = selectedOpt.getAttribute('data-parent') || 'Encik Ahmad';
-    }
-
     function capitalize(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.innerText = text;
+        return div.innerHTML;
+    }
 </script>
+
+<jsp:include page="icons.jsp" />
 </body>
 </html>

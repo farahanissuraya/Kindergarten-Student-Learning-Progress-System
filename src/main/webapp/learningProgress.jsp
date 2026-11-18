@@ -451,9 +451,11 @@
                                     </td>
                                     <td style="vertical-align: top; text-align: center;">
                                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                                            <button type="button" class="nb-btn nb-btn-yellow" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">
-                                                <%= IconUtil.icon("Eye", "icon-xs") %> Buka Laporan
-                                            </button>
+                                            <a href="<%= request.getContextPath() %>/reportDetail?studentId=<%= activeStudent.getStudentID() %>&reportDate=2026-10-31"
+											   class="nb-btn nb-btn-yellow"
+											   style="width: 100%; font-size: 0.78rem; padding: 6px 12px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box;">
+											    <%= IconUtil.icon("Eye", "icon-xs") %> View
+											</a>
                                             <% if (!isParent) { %>
                                                 <button type="button" class="nb-btn" style="width: 100%; font-size: 0.78rem; padding: 6px 12px;">
                                                     <%= IconUtil.icon("Edit2", "icon-xs") %> Edit

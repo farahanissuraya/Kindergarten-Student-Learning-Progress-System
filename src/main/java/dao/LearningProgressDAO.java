@@ -1,6 +1,7 @@
 package dao;
 
 import bean.LearningProgress;
+import bean.Student;
 import util.DatabaseConnection;
 
 import java.sql.Connection;
@@ -22,14 +23,13 @@ public class LearningProgressDAO {
     }
 
     public boolean addProgress(LearningProgress progress) throws Exception {
-        // Menggunakan sequence seq_progress_id jika progressID bernilai 0
         String sql;
         if (progress.getProgressID() > 0) {
-            sql = "INSERT INTO LEARNINGPROGRESS (progressID, learningID, studentID, progressName, progressDate, progressPercentage, progressStatus, teacherID, notes, ratingScale, assessorName, homeRecommendation) " +
-                  "VALUES (?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?)";
+            sql = "INSERT INTO LEARNINGPROGRESS (progressID, studentID, progressName, progressDate, progressPercentage, progressStatus, teacherID, domainName, notes, ratingScale, assessorName, homeRecommendation) " +
+                  "VALUES (?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?, ?)";
         } else {
-            sql = "INSERT INTO LEARNINGPROGRESS (progressID, learningID, studentID, progressName, progressDate, progressPercentage, progressStatus, teacherID, notes, ratingScale, assessorName, homeRecommendation) " +
-                  "VALUES (seq_progress_id.NEXTVAL, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?)";
+            sql = "INSERT INTO LEARNINGPROGRESS (progressID, studentID, progressName, progressDate, progressPercentage, progressStatus, teacherID, domainName, notes, ratingScale, assessorName, homeRecommendation) " +
+                  "VALUES (seq_progress_id.NEXTVAL, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -39,7 +39,6 @@ public class LearningProgressDAO {
             if (progress.getProgressID() > 0) {
                 pstmt.setInt(idx++, progress.getProgressID());
             }
-            pstmt.setInt(idx++, progress.getLearningID());
             pstmt.setInt(idx++, progress.getStudentID());
             pstmt.setString(idx++, progress.getProgressName());
 
@@ -51,6 +50,7 @@ public class LearningProgressDAO {
             pstmt.setDouble(idx++, progress.getProgressPercentage());
             pstmt.setString(idx++, progress.getProgressStatus());
             pstmt.setInt(idx++, progress.getTeacherID() > 0 ? progress.getTeacherID() : 201);
+            pstmt.setString(idx++, progress.getDomainName() != null ? progress.getDomainName() : "Reading");
             pstmt.setString(idx++, progress.getNotes());
             pstmt.setInt(idx++, progress.getRatingScale() > 0 ? progress.getRatingScale() : 5);
             pstmt.setString(idx++, progress.getAssessorName() != null ? progress.getAssessorName() : "Teacher");
@@ -69,15 +69,14 @@ public class LearningProgressDAO {
     // ==========================================
     public List<LearningProgress> getProgressByStudentId(int studentID) throws Exception {
         List<LearningProgress> list = new ArrayList<>();
-        String sql = "SELECT lp.progressID, lp.learningID, lp.studentID, lp.progressName, " +
-                     "TO_CHAR(lp.progressDate, 'YYYY-MM-DD') AS formattedDate, " +
-                     "lp.progressPercentage, lp.progressStatus, lp.teacherID, lp.notes, " +
-                     "NVL(lp.ratingScale, 5) AS ratingScale, lp.assessorName, lp.homeRecommendation, " +
-                     "NVL(l.learningName, 'General') AS domainName " +
-                     "FROM LEARNINGPROGRESS lp " +
-                     "LEFT JOIN LEARNING l ON lp.learningID = l.learningID " +
-                     "WHERE lp.studentID = ? " +
-                     "ORDER BY lp.progressDate DESC, lp.progressID DESC";
+        String sql = "SELECT progressID, studentID, progressName, " +
+                     "TO_CHAR(progressDate, 'YYYY-MM-DD') AS formattedDate, " +
+                     "progressPercentage, progressStatus, teacherID, " +
+                     "NVL(domainName, 'General') AS domainName, notes, " +
+                     "NVL(ratingScale, 5) AS ratingScale, assessorName, homeRecommendation " +
+                     "FROM LEARNINGPROGRESS " +
+                     "WHERE studentID = ? " +
+                     "ORDER BY progressDate DESC, progressID DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -87,18 +86,17 @@ public class LearningProgressDAO {
                 while (rs.next()) {
                     LearningProgress progress = new LearningProgress();
                     progress.setProgressID(rs.getInt("progressID"));
-                    progress.setLearningID(rs.getInt("learningID"));
                     progress.setStudentID(rs.getInt("studentID"));
                     progress.setProgressName(rs.getString("progressName"));
                     progress.setProgressDate(rs.getString("formattedDate"));
                     progress.setProgressPercentage(rs.getDouble("progressPercentage"));
                     progress.setProgressStatus(rs.getString("progressStatus"));
                     progress.setTeacherID(rs.getInt("teacherID"));
+                    progress.setDomainName(rs.getString("domainName"));
                     progress.setNotes(rs.getString("notes"));
                     progress.setRatingScale(rs.getInt("ratingScale"));
                     progress.setAssessorName(rs.getString("assessorName"));
                     progress.setHomeRecommendation(rs.getString("homeRecommendation"));
-                    progress.setDomainName(rs.getString("domainName"));
                     
                     list.add(progress);
                 }
@@ -118,13 +116,13 @@ public class LearningProgressDAO {
     }
 
     public boolean updateProgress(LearningProgress progress) throws Exception {
-        String sql = "UPDATE LEARNINGPROGRESS SET learningID = ?, progressName = ?, progressDate = TO_DATE(?, 'YYYY-MM-DD'), " +
+        String sql = "UPDATE LEARNINGPROGRESS SET domainName = ?, progressName = ?, progressDate = TO_DATE(?, 'YYYY-MM-DD'), " +
                      "progressPercentage = ?, progressStatus = ?, teacherID = ?, notes = ?, ratingScale = ?, homeRecommendation = ? " +
                      "WHERE progressID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setInt(1, progress.getLearningID());
+            pstmt.setString(1, progress.getDomainName() != null ? progress.getDomainName() : "Reading");
             pstmt.setString(2, progress.getProgressName());
             pstmt.setString(3, progress.getProgressDate());
             pstmt.setDouble(4, progress.getProgressPercentage());
@@ -199,16 +197,15 @@ public class LearningProgressDAO {
         return 0;
     }
 
-	 // ==========================================
-	 // DAPATKAN SKALA DOMAIN MURID DARI DATABASE
-	 // ==========================================
+    // ==========================================
+    // 6. DAPATKAN SKALA DOMAIN MURID DARI DATABASE
+    // ==========================================
     public int getDomainScale(int studentID, String domainName) {
-        int scale = 1; // Jika tiada rekod dalam DB, tetapkan ke Skala 1 (Tahap Asas/Emerging)
-        String sql = "SELECT NVL(lp.ratingScale, 1) AS ratingScale " +
-                     "FROM LEARNINGPROGRESS lp " +
-                     "LEFT JOIN LEARNING l ON lp.learningID = l.learningID " +
-                     "WHERE lp.studentID = ? AND (LOWER(l.learningName) LIKE ? OR LOWER(lp.progressName) LIKE ?) " +
-                     "ORDER BY lp.progressDate DESC, lp.progressID DESC";
+        int scale = 1;
+        String sql = "SELECT NVL(ratingScale, 1) AS ratingScale " +
+                     "FROM LEARNINGPROGRESS " +
+                     "WHERE studentID = ? AND (LOWER(domainName) LIKE ? OR LOWER(progressName) LIKE ?) " +
+                     "ORDER BY progressDate DESC, progressID DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -227,32 +224,118 @@ public class LearningProgressDAO {
         }
         return scale;
     }
-	
-	 // ==========================================
-	 // DAPATKAN PURATA KELAS DARI DATABASE (DYNAMIC)
-	 // ==========================================
-	 public double getClassAverageScale(String domainName) {
-	     double avgRadarValue = 0.0;
-	     String sql = "SELECT NVL(AVG(lp.ratingScale) * 2.0, 0.0) AS classAvgRadar " +
-	                  "FROM LEARNINGPROGRESS lp " +
-	                  "LEFT JOIN LEARNING l ON lp.learningID = l.learningID " +
-	                  "WHERE LOWER(l.learningName) LIKE ? OR LOWER(lp.progressName) LIKE ?";
-	
-	     try (Connection conn = DatabaseConnection.getConnection();
-	          PreparedStatement pstmt = conn.prepareStatement(sql)) {
-	
-	         pstmt.setString(1, "%" + domainName.toLowerCase() + "%");
-	         pstmt.setString(2, "%" + domainName.toLowerCase() + "%");
-	
-	         try (ResultSet rs = pstmt.executeQuery()) {
-	             if (rs.next()) {
-	                 avgRadarValue = Math.round(rs.getDouble("classAvgRadar") * 10.0) / 10.0;
-	             }
-	         }
-	     } catch (Exception e) {
-	         System.err.println("Ralat getClassAverageScale: " + e.getMessage());
-	         e.printStackTrace();
-	     }
-	     return avgRadarValue;
-	 }
+    
+    // ==========================================
+    // 7. DAPATKAN PURATA KELAS DARI DATABASE (DYNAMIC)
+    // ==========================================
+    public double getClassAverageScale(String domainName) {
+        double avgRadarValue = 0.0;
+        String sql = "SELECT NVL(AVG(ratingScale) * 2.0, 0.0) AS classAvgRadar " +
+                     "FROM LEARNINGPROGRESS " +
+                     "WHERE LOWER(domainName) LIKE ? OR LOWER(progressName) LIKE ?";
+    
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    
+            pstmt.setString(1, "%" + domainName.toLowerCase() + "%");
+            pstmt.setString(2, "%" + domainName.toLowerCase() + "%");
+    
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    avgRadarValue = Math.round(rs.getDouble("classAvgRadar") * 10.0) / 10.0;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Ralat getClassAverageScale: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return avgRadarValue;
+    }
+
+    // ==========================================
+    // 8. KAEDAH UNTUK LAPORAN PENUH (REPORT DETAIL)
+    // ==========================================
+    public Student getStudentById(int studentID) {
+        Student st = null;
+        String sql = "SELECT studentID, studentName, studentAge, studentClass FROM STUDENT WHERE studentID = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, studentID);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    st = new Student();
+                    st.setStudentID(rs.getInt("studentID"));
+                    st.setStudentName(rs.getString("studentName"));
+                    st.setStudentAge(rs.getInt("studentAge"));
+                    String sClass = rs.getString("studentClass");
+                    st.setStudentClass((sClass != null && !sClass.trim().isEmpty()) ? sClass : "Kindergarten 3B");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Ralat getStudentById: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return st;
+    }
+
+    public String getLatestReportDate(int studentID) {
+        String sql = "SELECT TO_CHAR(MAX(progressDate), 'YYYY-MM-DD') AS latestDate " +
+                     "FROM LEARNINGPROGRESS WHERE studentID = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, studentID);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next() && rs.getString("latestDate") != null) {
+                    return rs.getString("latestDate");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Ralat getLatestReportDate: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<LearningProgress> getRecordsByStudentAndDate(int studentID, String reportDate) {
+        List<LearningProgress> list = new ArrayList<>();
+        String sql = "SELECT progressID, studentID, progressName, " +
+                     "TO_CHAR(progressDate, 'YYYY-MM-DD') AS formattedDate, " +
+                     "progressPercentage, progressStatus, teacherID, " +
+                     "NVL(domainName, 'Reading') AS domainName, notes, " +
+                     "NVL(ratingScale, 4) AS ratingScale, assessorName, homeRecommendation " +
+                     "FROM LEARNINGPROGRESS " +
+                     "WHERE studentID = ? AND TO_CHAR(progressDate, 'YYYY-MM-DD') = ? " +
+                     "ORDER BY CASE UPPER(domainName) " +
+                     "WHEN 'READING' THEN 1 WHEN 'WRITING' THEN 2 WHEN 'COUNTING' THEN 3 ELSE 4 END, progressID ASC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, studentID);
+            pstmt.setString(2, reportDate);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    LearningProgress progress = new LearningProgress();
+                    progress.setProgressID(rs.getInt("progressID"));
+                    progress.setStudentID(rs.getInt("studentID"));
+                    progress.setProgressName(rs.getString("progressName"));
+                    progress.setProgressDate(rs.getString("formattedDate"));
+                    progress.setProgressPercentage(rs.getDouble("progressPercentage"));
+                    progress.setProgressStatus(rs.getString("progressStatus"));
+                    progress.setTeacherID(rs.getInt("teacherID"));
+                    progress.setDomainName(rs.getString("domainName"));
+                    progress.setNotes(rs.getString("notes"));
+                    progress.setRatingScale(rs.getInt("ratingScale"));
+                    progress.setAssessorName(rs.getString("assessorName"));
+                    progress.setHomeRecommendation(rs.getString("homeRecommendation"));
+
+                    list.add(progress);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Ralat getRecordsByStudentAndDate: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

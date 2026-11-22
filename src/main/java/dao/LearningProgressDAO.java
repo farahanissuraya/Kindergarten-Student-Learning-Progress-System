@@ -29,7 +29,7 @@ public class LearningProgressDAO {
                   "VALUES (?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?, ?)";
         } else {
             sql = "INSERT INTO LEARNINGPROGRESS (progressID, studentID, progressName, progressDate, progressPercentage, progressStatus, teacherID, domainName, notes, ratingScale, assessorName, homeRecommendation) " +
-                  "VALUES (seq_progress_id.NEXTVAL, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?, ?)";
+                  "VALUES ((SELECT NVL(MAX(progressID), 100) + 1 FROM LEARNINGPROGRESS), ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -49,7 +49,7 @@ public class LearningProgressDAO {
 
             pstmt.setDouble(idx++, progress.getProgressPercentage());
             pstmt.setString(idx++, progress.getProgressStatus());
-            pstmt.setInt(idx++, progress.getTeacherID() > 0 ? progress.getTeacherID() : 201);
+            pstmt.setInt(idx++, progress.getTeacherID() > 0 ? progress.getTeacherID() : 102);
             pstmt.setString(idx++, progress.getDomainName() != null ? progress.getDomainName() : "Reading");
             pstmt.setString(idx++, progress.getNotes());
             pstmt.setInt(idx++, progress.getRatingScale() > 0 ? progress.getRatingScale() : 5);
@@ -127,7 +127,7 @@ public class LearningProgressDAO {
             pstmt.setString(3, progress.getProgressDate());
             pstmt.setDouble(4, progress.getProgressPercentage());
             pstmt.setString(5, progress.getProgressStatus());
-            pstmt.setInt(6, progress.getTeacherID() > 0 ? progress.getTeacherID() : 201);
+            pstmt.setInt(6, progress.getTeacherID() > 0 ? progress.getTeacherID() : 102);
             pstmt.setString(7, progress.getNotes());
             pstmt.setInt(8, progress.getRatingScale());
             pstmt.setString(9, progress.getHomeRecommendation());

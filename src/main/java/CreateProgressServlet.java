@@ -7,7 +7,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/createProgress")
 public class CreateProgressServlet extends HttpServlet {
@@ -16,38 +18,26 @@ public class CreateProgressServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        
         try {
             StudentDAO studentDAO = new StudentDAO();
             List<Student> students = studentDAO.getAllStudents();
             request.setAttribute("students", students);
 
-            // Jika ada parameter edit
-            String editIdParam = request.getParameter("editProgressID");
-            if (editIdParam != null && !editIdParam.isEmpty()) {
-                int editId = Integer.parseInt(editIdParam);
-                LearningProgressDAO lpDAO = new LearningProgressDAO();
-                List<LearningProgress> editingRecord = lpDAO.getProgressByStudentId(editId);
-                request.setAttribute("editingRecord", editingRecord);
-            }
-            
-            // Tarik studentId lalai jika ada
             String studentIdParam = request.getParameter("studentId");
             if (studentIdParam != null && !studentIdParam.isEmpty()) {
                 request.setAttribute("targetStudentId", Integer.parseInt(studentIdParam));
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         request.getRequestDispatcher("createProgress.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        
+        request.setCharacterEncoding("UTF-8");
+
         try {
             LearningProgressDAO dao = new LearningProgressDAO();
             int studentID = Integer.parseInt(request.getParameter("studentID"));
@@ -55,73 +45,118 @@ public class CreateProgressServlet extends HttpServlet {
             String assessorName = request.getParameter("assessorName");
             String homeRecommendation = request.getParameter("homeRecommendation");
             String editProgressIDStr = request.getParameter("editProgressID");
+            String editReportDate = request.getParameter("editReportDate");
+
+            HttpSession session = request.getSession(false);
+            int teacherID = 102;
+            if (session != null && session.getAttribute("teacherID") != null) {
+                try {
+                    teacherID = Integer.parseInt(session.getAttribute("teacherID").toString());
+                } catch (Exception ignored) {}
+            }
 
             boolean isSingleEdit = (editProgressIDStr != null && !editProgressIDStr.equals("0") && !editProgressIDStr.isEmpty());
+            boolean isDateGroupEdit = (editReportDate != null && !editReportDate.trim().isEmpty());
 
             if (isSingleEdit) {
-                // MODEDIT REKOD TUNGGAL
                 int progressID = Integer.parseInt(editProgressIDStr);
                 String domain = request.getParameter("singleDomainName");
-                int learningID = "Writing".equals(domain) ? 2 : "Counting".equals(domain) ? 3 : 1;
 
                 LearningProgress lp = new LearningProgress();
                 lp.setProgressID(progressID);
-                lp.setLearningID(learningID);
+                lp.setDomainName(domain != null ? domain : "Reading");
                 lp.setStudentID(studentID);
                 lp.setProgressName(request.getParameter("singleProgressName"));
                 lp.setProgressDate(progressDate);
-                
+
                 int scale = Integer.parseInt(request.getParameter("singleRatingScale"));
                 lp.setRatingScale(scale);
                 lp.setProgressPercentage(scale * 20.0);
                 lp.setProgressStatus(getStatusFromScale(scale));
-                lp.setTeacherID(201);
+                lp.setTeacherID(teacherID);
                 lp.setAssessorName(assessorName);
                 lp.setHomeRecommendation(homeRecommendation);
                 lp.setNotes(request.getParameter("singleNotes"));
-       //         lp.setRubricCriteriaJson(request.getParameter("singleRubricCriteriaJson"));
 
                 dao.updateLearningProgress(lp);
 
-            } else {
-                // SIMPAN BATCH (3 TERAS: READING, WRITING, COUNTING)
-                String activeDomainFilter = request.getParameter("activeDomainFilter");
-                String[] domains = "All".equals(activeDomainFilter) 
-                        ? new String[]{"Reading", "Writing", "Counting"} 
-                        : new String[]{activeDomainFilter};
+            } else if (isDateGroupEdit) {
+                // MOD EDIT LAPORAN BERDASARKAN TARIKH: Peta rekod asal ikut domain (READING / WRITING / COUNTING)
+                List<LearningProgress> existingList = dao.getRecordsByStudentAndDate(studentID, editReportDate.trim());
+                Map<String, LearningProgress> existingByDomain = new HashMap<>();
+                for (LearningProgress item : existingList) {
+                    if (item.getDomainName() != null) {
+                        existingByDomain.put(item.getDomainName().trim().toUpperCase(), item);
+                    }
+                }
 
+                String[] domains = {"Reading", "Writing", "Counting"};
                 for (String dom : domains) {
-                    int learningID = "Writing".equals(dom) ? 2 : "Counting".equals(dom) ? 3 : 1;
-                    
-                    String topicName = request.getParameter(dom.toLowerCase() + "_progressName");
-                    String scaleStr = request.getParameter(dom.toLowerCase() + "_ratingScale");
+                    String key = dom.toLowerCase();
+                    String topicName = request.getParameter(key + "_progressName");
+                    String scaleStr = request.getParameter(key + "_ratingScale");
                     int scale = (scaleStr != null && !scaleStr.isEmpty()) ? Integer.parseInt(scaleStr) : 4;
-                    String notes = request.getParameter(dom.toLowerCase() + "_notes");
-                    String criteriaJson = request.getParameter(dom.toLowerCase() + "_rubricCriteriaJson");
+                    String notes = request.getParameter(key + "_notes");
 
-                    LearningProgress lp = new LearningProgress();
-                    lp.setLearningID(learningID);
+                    LearningProgress existingRec = existingByDomain.get(dom.toUpperCase());
+                    LearningProgress lp = (existingRec != null) ? existingRec : new LearningProgress();
+
+                    lp.setDomainName(dom);
                     lp.setStudentID(studentID);
-                    lp.setProgressName(topicName != null ? topicName : "Pentaksiran " + dom);
+                    lp.setProgressName(topicName != null && !topicName.trim().isEmpty() ? topicName : "Pentaksiran " + dom);
                     lp.setProgressDate(progressDate);
                     lp.setRatingScale(scale);
                     lp.setProgressPercentage(scale * 20.0);
                     lp.setProgressStatus(getStatusFromScale(scale));
-                    lp.setTeacherID(201);
+                    lp.setTeacherID(teacherID);
                     lp.setAssessorName(assessorName);
                     lp.setHomeRecommendation(homeRecommendation);
                     lp.setNotes(notes);
-        //            lp.setRubricCriteriaJson(criteriaJson);
+
+                    if (existingRec != null && existingRec.getProgressID() > 0) {
+                        dao.updateLearningProgress(lp);
+                    } else {
+                        dao.addLearningProgress(lp);
+                    }
+                }
+
+            } else {
+                // MOD TAMBAH REKOD BAHARU (CREATE)
+                String activeDomainFilter = request.getParameter("activeDomainFilter");
+                String[] domains = (activeDomainFilter == null || "All".equalsIgnoreCase(activeDomainFilter))
+                        ? new String[]{"Reading", "Writing", "Counting"}
+                        : new String[]{activeDomainFilter};
+
+                for (String dom : domains) {
+                    String key = dom.toLowerCase();
+                    String topicName = request.getParameter(key + "_progressName");
+                    String scaleStr = request.getParameter(key + "_ratingScale");
+                    int scale = (scaleStr != null && !scaleStr.isEmpty()) ? Integer.parseInt(scaleStr) : 4;
+                    String notes = request.getParameter(key + "_notes");
+
+                    LearningProgress lp = new LearningProgress();
+                    lp.setDomainName(dom);
+                    lp.setStudentID(studentID);
+                    lp.setProgressName(topicName != null && !topicName.trim().isEmpty() ? topicName : "Pentaksiran " + dom);
+                    lp.setProgressDate(progressDate);
+                    lp.setRatingScale(scale);
+                    lp.setProgressPercentage(scale * 20.0);
+                    lp.setProgressStatus(getStatusFromScale(scale));
+                    lp.setTeacherID(teacherID);
+                    lp.setAssessorName(assessorName);
+                    lp.setHomeRecommendation(homeRecommendation);
+                    lp.setNotes(notes);
 
                     dao.addLearningProgress(lp);
                 }
             }
 
-            response.sendRedirect(request.getContextPath() + "/learningProgress?studentId=" + studentID);
+            response.sendRedirect(request.getContextPath() + "/ProgressServlet?studentId=" + studentID);
             return;
 
         } catch (Exception e) {
             e.printStackTrace();
+            request.setAttribute("errorMessage", "Ralat simpan rekod: " + e.getMessage());
         }
 
         doGet(request, response);

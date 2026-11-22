@@ -35,7 +35,6 @@ public class ProgressServlet extends HttpServlet {
                 userRole = roleObj.toString();
             }
 
-            // Kesan parentID daripada pelbagai kemungkinan nama atribut session
             Object userObj = session.getAttribute("user");
             if (userObj instanceof Parent) {
                 loggedParentId = ((Parent) userObj).getParentID();
@@ -58,8 +57,6 @@ public class ProgressServlet extends HttpServlet {
             }
         }
 
-        System.out.println("[DEBUG ProgressServlet] Role: " + userRole + " | ParentID: " + loggedParentId + " | Email: " + loggedParentEmail);
-
         int studentId = -1;
         String reqStudentId = request.getParameter("studentId");
         if (reqStudentId == null || reqStudentId.trim().isEmpty()) {
@@ -76,7 +73,6 @@ public class ProgressServlet extends HttpServlet {
         
         try (Connection conn = DatabaseConnection.getConnection()) {
             if (conn != null) {
-                // Jika Parent login menggunakan email tetapi parentID tiada dalam session, cari parentID dalam jadual PARENT
                 if ("Parent".equalsIgnoreCase(userRole) && loggedParentId == null && loggedParentEmail != null) {
                     String sqlFindParent = "SELECT parentID FROM PARENT WHERE LOWER(parentEmail) = LOWER(?)";
                     try (PreparedStatement ps = conn.prepareStatement(sqlFindParent)) {
@@ -89,7 +85,6 @@ public class ProgressServlet extends HttpServlet {
                     }
                 }
 
-                // 1. Tarik Senarai Pelajar terus daripada jadual STUDENT (tanpa JOIN CLASS yang bermasalah)
                 if ("Parent".equalsIgnoreCase(userRole) && loggedParentId != null) {
                     String sqlParentKids = "SELECT * FROM STUDENT WHERE parentID = ? ORDER BY studentID ASC";
                     try (PreparedStatement ps = conn.prepareStatement(sqlParentKids)) {
@@ -120,7 +115,6 @@ public class ProgressServlet extends HttpServlet {
                     }
                 }
 
-                // 2. Pilih murid pertama dalam senarai (cth: Lily) jika tiada parameter studentId
                 if (!classStudents.isEmpty()) {
                     if (studentId != -1) {
                         for (Student st : classStudents) {
@@ -139,7 +133,6 @@ public class ProgressServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-        // Fallback hanya jika jadual STUDENT kosong atau sambungan DB gagal
         if (currentStudent.getStudentName() == null) {
             currentStudent.setStudentID(301);
             currentStudent.setStudentName("Leo Vance");
@@ -148,7 +141,6 @@ public class ProgressServlet extends HttpServlet {
             classStudents.add(currentStudent);
         }
 
-        // 3. Tarik Rekod Kemajuan melalui DAO
         LearningProgressDAO dao = new LearningProgressDAO();
         List<LearningProgress> progressList = new ArrayList<>();
         try {
@@ -169,8 +161,17 @@ public class ProgressServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
+        request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
         LearningProgressDAO dao = new LearningProgressDAO();
+
+        HttpSession session = request.getSession(false);
+        int teacherId = 102;
+        if (session != null && session.getAttribute("teacherID") != null) {
+            try {
+                teacherId = Integer.parseInt(session.getAttribute("teacherID").toString());
+            } catch (Exception ignored) {}
+        }
 
         try {
             if ("create".equals(action) || "update".equals(action)) {
@@ -179,8 +180,7 @@ public class ProgressServlet extends HttpServlet {
                 lp.setStudentID(studentId);
                 
                 String domain = request.getParameter("domainName");
-                int learningId = "Writing".equals(domain) ? 2 : "Counting".equals(domain) ? 3 : 1;
-                lp.setLearningID(learningId);
+                lp.setDomainName((domain != null && !domain.trim().isEmpty()) ? domain.trim() : "Reading");
                 lp.setProgressName(request.getParameter("progressName"));
                 lp.setProgressPercentage(Double.parseDouble(request.getParameter("progressPercentage")));
                 lp.setProgressStatus(request.getParameter("progressStatus"));
@@ -195,7 +195,7 @@ public class ProgressServlet extends HttpServlet {
                     dateStr = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
                 }
                 lp.setProgressDate(dateStr);
-                lp.setTeacherID(201);
+                lp.setTeacherID(teacherId);
 
                 if ("create".equals(action)) {
                     dao.addProgress(lp);
@@ -203,16 +203,45 @@ public class ProgressServlet extends HttpServlet {
                     lp.setProgressID(Integer.parseInt(request.getParameter("progressID")));
                     dao.updateProgress(lp);
                 }
-                response.sendRedirect(request.getContextPath() + "/ProgressServlet?studentId=" + studentId);
+                response.sendRedirect(request.getContextPath() + "/learningProgress?studentId=" + studentId);
                 return;
 
             } else if ("delete".equals(action)) {
-                int progressId = Integer.parseInt(request.getParameter("progressID"));
                 int studentId = Integer.parseInt(request.getParameter("studentID"));
-                dao.deleteProgress(progressId);
+                String reportDate = request.getParameter("reportDate");
+                String progressIdStr = request.getParameter("progressID");
+
+                int deletedRows = 0;
+
+                if (reportDate != null && !reportDate.trim().isEmpty()) {
+                    String cleanDate = reportDate.trim();
+                    try (Connection conn = DatabaseConnection.getConnection()) {
+                        if (conn != null) {
+                            String sql = "DELETE FROM LEARNINGPROGRESS " +
+                                         "WHERE studentID = ? " +
+                                         "AND (TO_CHAR(progressDate, 'YYYY-MM-DD') = ? OR TRUNC(progressDate) = TO_DATE(?, 'YYYY-MM-DD'))";
+                            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                                ps.setInt(1, studentId);
+                                ps.setString(2, cleanDate);
+                                ps.setString(3, cleanDate);
+                                deletedRows = ps.executeUpdate();
+                            }
+                        }
+                    }
+                }
+
+                // Sandaran jika 0 baris terpadam mengikut tarikh tetapi progressID ada
+                if (deletedRows == 0 && progressIdStr != null && !progressIdStr.trim().isEmpty()) {
+                    try {
+                        int progressId = Integer.parseInt(progressIdStr.trim());
+                        dao.deleteProgress(progressId);
+                    } catch (Exception ignored) {}
+                }
+
                 response.sendRedirect(request.getContextPath() + "/ProgressServlet?studentId=" + studentId);
                 return;
             }
+            
         } catch (Exception e) {
             e.printStackTrace();
         }

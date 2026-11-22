@@ -2,6 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page import="bean.Student"%>
 <%@ page import="bean.LearningProgress"%>
+<%@ page import="dao.LearningProgressDAO"%>
 <%@ page import="util.DatabaseConnection"%>
 <%@ page import="util.IconUtil"%>
 <%@ page import="java.sql.*"%>
@@ -70,6 +71,53 @@
     int initialAge = (initialStudent != null) ? initialStudent.getStudentAge() : 5;
     String initialParent = parentNameMap.getOrDefault(initialStudentId, "-");
 
+    // Semak Mod Edit berdasarkan parameter reportDate
+    String editReportDate = request.getParameter("reportDate");
+    boolean isEditMode = (editReportDate != null && !editReportDate.trim().isEmpty());
+
+    LearningProgress editReading = null;
+    LearningProgress editWriting = null;
+    LearningProgress editCounting = null;
+    String savedHomeRec = "";
+    String savedAssessor = "";
+
+    if (isEditMode && initialStudentId > 0) {
+        LearningProgressDAO editDao = new LearningProgressDAO();
+        List<LearningProgress> oldRecs = editDao.getRecordsByStudentAndDate(initialStudentId, editReportDate.trim());
+        for (LearningProgress r : oldRecs) {
+            if ("Reading".equalsIgnoreCase(r.getDomainName())) editReading = r;
+            else if ("Writing".equalsIgnoreCase(r.getDomainName())) editWriting = r;
+            else if ("Counting".equalsIgnoreCase(r.getDomainName())) editCounting = r;
+
+            if (r.getHomeRecommendation() != null && !r.getHomeRecommendation().trim().isEmpty()) {
+                savedHomeRec = r.getHomeRecommendation();
+            }
+            if (r.getAssessorName() != null && !r.getAssessorName().trim().isEmpty()) {
+                savedAssessor = r.getAssessorName();
+            }
+        }
+    }
+
+    String todayDate = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+    String formDateVal = isEditMode ? editReportDate.trim() : todayDate;
+
+    String defaultAssessor = (session.getAttribute("userName") != null && !session.getAttribute("userName").toString().isEmpty())
+            ? session.getAttribute("userName").toString() : "Ms. Clara Davis";
+    String formAssessorVal = (isEditMode && !savedAssessor.isEmpty()) ? savedAssessor : defaultAssessor;
+
+    String readTopicVal = (editReading != null && editReading.getProgressName() != null)
+            ? editReading.getProgressName() : "Penguasaan Fonik & Pengecaman Bunyi Huruf (Phonics)";
+    String writeTopicVal = (editWriting != null && editWriting.getProgressName() != null)
+            ? editWriting.getProgressName() : "Kawalan Motor Halus & Genggaman Pensel (Tripod Grip)";
+    String countTopicVal = (editCounting != null && editCounting.getProgressName() != null)
+            ? editCounting.getProgressName() : "Pengecaman Nombor & Pembilangan Objek (1-30)";
+
+    int readScaleVal = (editReading != null && editReading.getRatingScale() > 0) ? editReading.getRatingScale() : 4;
+    int writeScaleVal = (editWriting != null && editWriting.getRatingScale() > 0) ? editWriting.getRatingScale() : 4;
+    int countScaleVal = (editCounting != null && editCounting.getRatingScale() > 0) ? editCounting.getRatingScale() : 4;
+
+    String[] statusNames = {"", "NOT STARTED", "EMERGING", "DEVELOPING", "PROFICIENT", "MASTERED"};
+
     request.setAttribute("oracleStudents", oracleStudents);
     request.setAttribute("oracleClasses", oracleClasses);
     request.setAttribute("parentNameMap", parentNameMap);
@@ -84,7 +132,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Borang Pentaksiran Komprehensif - Keedflix Centre</title>
+    <title><%= isEditMode ? "Kemaskini Rekod Pentaksiran" : "Borang Pentaksiran Komprehensif" %> - Keedflix Centre</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
     
     <style>
@@ -384,22 +432,23 @@
                 <form action="${pageContext.request.contextPath}/createProgress" method="POST" id="progressForm">
                     <input type="hidden" name="studentID" id="formStudentID" value="${editingRecord != null ? editingRecord.studentID : initialStudentId}">
                     <input type="hidden" name="editProgressID" value="${editingRecord != null ? editingRecord.progressID : 0}">
+                    <input type="hidden" name="editReportDate" value="<%= isEditMode ? editReportDate.trim() : "" %>">
                     <input type="hidden" name="activeDomainFilter" id="activeDomainFilter" value="All">
 
                     <!-- TOP BREADCRUMB & HEADER BAR -->
                     <div class="nb-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 14px;">
-                            <a href="${pageContext.request.contextPath}/learningProgress" class="nb-btn">
+                            <a href="${pageContext.request.contextPath}/ProgressServlet?studentId=${initialStudentId}" class="nb-btn">
                                 <%= IconUtil.icon("ArrowLeft", "icon-xs") %>
                                 <span>Kembali</span>
                             </a>
                             <div>
                                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 4px;">
-                                    <span class="nb-badge badge-purple">PENTAKSIRAN BERSEPADU KSPK</span>
+                                    <span class="nb-badge badge-purple"><%= isEditMode ? "MOD KEMASKINI REKOD" : "PENTAKSIRAN BERSEPADU KSPK" %></span>
                                     <span class="nb-badge badge-mint">SKALA RATING 1 - 5 (RADAR CHART SYNC)</span>
                                 </div>
                                 <h1 style="font-size: 1.25rem; font-weight: 900;">
-                                    ${editingRecord != null ? 'Kemaskini Rekod Pentaksiran' : 'Borang Pentaksiran Komprehensif (Reading, Writing & Counting)'}
+                                    <%= isEditMode ? "Kemaskini Rekod Pentaksiran (" + editReportDate.trim() + ")" : "Borang Pentaksiran Komprehensif (Reading, Writing & Counting)" %>
                                 </h1>
                             </div>
                         </div>
@@ -435,16 +484,16 @@
                                             SASARAN MURID DINILAI
                                         </label>
                                         <select id="studentSelect" class="nb-select" onchange="updateStudentContext(this)">
-										    <c:forEach var="st" items="${oracleStudents}">
-										        <option value="${st.studentID}"
-										                data-class="${st.studentClass}"
-										                data-age="${st.studentAge}"
-										                data-parent="${parentNameMap[st.studentID]}"
-										                ${st.studentID == initialStudentId ? 'selected' : ''}>
-										            ${st.studentName} — ${st.studentClass} (${st.studentAge} Years)
-										        </option>
-										    </c:forEach>
-										</select>
+                                            <c:forEach var="st" items="${oracleStudents}">
+                                                <option value="${st.studentID}"
+                                                        data-class="${st.studentClass}"
+                                                        data-age="${st.studentAge}"
+                                                        data-parent="${parentNameMap[st.studentID]}"
+                                                        ${st.studentID == initialStudentId ? 'selected' : ''}>
+                                                    ${st.studentName} — ${st.studentClass} (${st.studentAge} Years)
+                                                </option>
+                                            </c:forEach>
+                                        </select>
                                     </div>
 
                                     <!-- Badge Sasaran Umur & Nama Ibu Bapa -->
@@ -466,7 +515,7 @@
                                     <%= IconUtil.icon("Calendar", "icon-xs") %>
                                     <span>TARIKH PENTAKSIRAN</span>
                                 </label>
-                                <input type="date" name="progressDate" class="nb-input" value="2026-11-17" required>
+                                <input type="date" name="progressDate" class="nb-input" value="<%= formDateVal %>" required>
                             </div>
 
                             <!-- Kotak Kanan: Guru Penilai -->
@@ -475,7 +524,7 @@
                                     <%= IconUtil.icon("UserCheck", "icon-xs") %>
                                     <span>GURU PENILAI (ASSESSOR)</span>
                                 </label>
-                                <input type="text" name="assessorName" class="nb-input" value="${not empty sessionScope.userName ? sessionScope.userName : 'Ms. Clara Davis'}" required>
+                                <input type="text" name="assessorName" class="nb-input" value="<%= formAssessorVal %>" required>
                             </div>
 
                         </div>
@@ -540,15 +589,15 @@
                                         </span>
                                     </div>
                                     <h4 style="font-size: 0.85rem; font-weight: 900; margin-bottom: 4px;" id="prevReadingTitle">
-                                        Penguasaan Fonik &amp; Pengecaman Bunyi Huruf (Phonics)
+                                        <%= readTopicVal %>
                                     </h4>
                                     <p style="font-size: 0.7rem; color: #475569; font-weight: 600;">
                                         Penguasaan: <strong id="prevReadingCount">4/5</strong> kriteria standard konstruk KSPK.
                                     </p>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #CBD5E1; padding-top: 8px; margin-top: 12px; font-size: 0.75rem;">
-                                    <span style="color: #64748B; font-weight: 700;">Paksi Radar: <strong style="color: var(--border-dark);" id="prevReadingRadar">8/10</strong></span>
-                                    <span style="font-weight: 900;" id="prevReadingScale">Skala 4/5</span>
+                                    <span style="color: #64748B; font-weight: 700;">Paksi Radar: <strong style="color: var(--border-dark);" id="prevReadingRadar"><%= readScaleVal * 2 %>/10</strong></span>
+                                    <span style="font-weight: 900;" id="prevReadingScale">Skala <%= readScaleVal %>/5</span>
                                 </div>
                             </div>
 
@@ -566,15 +615,15 @@
                                         </span>
                                     </div>
                                     <h4 style="font-size: 0.85rem; font-weight: 900; margin-bottom: 4px;" id="prevWritingTitle">
-                                        Kawalan Motor Halus &amp; Genggaman Pensel (Tripod Grip)
+                                        <%= writeTopicVal %>
                                     </h4>
                                     <p style="font-size: 0.7rem; color: #475569; font-weight: 600;">
                                         Penguasaan: <strong id="prevWritingCount">4/5</strong> kriteria standard konstruk KSPK.
                                     </p>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #CBD5E1; padding-top: 8px; margin-top: 12px; font-size: 0.75rem;">
-                                    <span style="color: #64748B; font-weight: 700;">Paksi Radar: <strong style="color: var(--border-dark);" id="prevWritingRadar">8/10</strong></span>
-                                    <span style="font-weight: 900;" id="prevWritingScale">Skala 4/5</span>
+                                    <span style="color: #64748B; font-weight: 700;">Paksi Radar: <strong style="color: var(--border-dark);" id="prevWritingRadar"><%= writeScaleVal * 2 %>/10</strong></span>
+                                    <span style="font-weight: 900;" id="prevWritingScale">Skala <%= writeScaleVal %>/5</span>
                                 </div>
                             </div>
 
@@ -592,15 +641,15 @@
                                         </span>
                                     </div>
                                     <h4 style="font-size: 0.85rem; font-weight: 900; margin-bottom: 4px;" id="prevCountingTitle">
-                                        Pengecaman Nombor &amp; Pembilangan Objek (1-30)
+                                        <%= countTopicVal %>
                                     </h4>
                                     <p style="font-size: 0.7rem; color: #475569; font-weight: 600;">
                                         Penguasaan: <strong id="prevCountingCount">4/5</strong> kriteria standard konstruk KSPK.
                                     </p>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #CBD5E1; padding-top: 8px; margin-top: 12px; font-size: 0.75rem;">
-                                    <span style="color: #64748B; font-weight: 700;">Paksi Radar: <strong style="color: var(--border-dark);" id="prevCountingRadar">8/10</strong></span>
-                                    <span style="font-weight: 900;" id="prevCountingScale">Skala 4/5</span>
+                                    <span style="color: #64748B; font-weight: 700;">Paksi Radar: <strong style="color: var(--border-dark);" id="prevCountingRadar"><%= countScaleVal * 2 %>/10</strong></span>
+                                    <span style="font-weight: 900;" id="prevCountingScale">Skala <%= countScaleVal %>/5</span>
                                 </div>
                             </div>
                         </div>
@@ -628,7 +677,7 @@
                         </div>
 
                         <label style="font-size: 0.75rem; font-weight: 900; display: block; margin-bottom: 4px;">Tajuk / Topik Pentaksiran Reading <span style="color:red;">*</span></label>
-                        <input type="text" name="reading_progressName" id="readingTopic" class="nb-input" value="Penguasaan Fonik & Pengecaman Bunyi Huruf (Phonics)" oninput="updateLivePreview()">
+                        <input type="text" name="reading_progressName" id="readingTopic" class="nb-input" value="<%= readTopicVal %>" oninput="updateLivePreview()">
 
                         <!-- Suggested Score Banner -->
                         <div style="background: #FFFBEB; border: 2px solid #FCD34D; border-radius: 16px; padding: 12px 16px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center;">
@@ -713,24 +762,24 @@
                                         <%= IconUtil.icon("Award", "icon-xs") %>
                                         <span>Skala Penilaian Perkembangan (Rating Scale 1 - 5)</span>
                                     </label>
-                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: 8.0/10).</p>
+                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: <%= readScaleVal * 2 %>.0/10).</p>
                                 </div>
                                 <div style="display: flex; gap: 6px;">
-                                    <span class="nb-badge" style="background:#FFF;">Skala <span id="lblReadingScale">4</span> / 5</span>
-                                    <span class="nb-badge badge-yellow" id="lblReadingStatus">PROFICIENT</span>
+                                    <span class="nb-badge" style="background:#FFF;">Skala <span id="lblReadingScale"><%= readScaleVal %></span> / 5</span>
+                                    <span class="nb-badge badge-yellow" id="lblReadingStatus"><%= statusNames[readScaleVal] %></span>
                                 </div>
                             </div>
 
-                            <input type="hidden" name="reading_ratingScale" id="reading_scale" value="4">
+                            <input type="hidden" name="reading_ratingScale" id="reading_scale" value="<%= readScaleVal %>">
                             <div class="scale-grid">
-                                <div class="scale-btn" onclick="selectScale('reading', 1, 'yellow', this)"><span class="num">1</span><span class="lbl">Bermula</span></div>
-                                <div class="scale-btn" onclick="selectScale('reading', 2, 'yellow', this)"><span class="num">2</span><span class="lbl">Asas</span></div>
-                                <div class="scale-btn" onclick="selectScale('reading', 3, 'yellow', this)"><span class="num">3</span><span class="lbl">Membangun</span></div>
-                                <div class="scale-btn active-yellow" onclick="selectScale('reading', 4, 'yellow', this)">
+                                <div class="scale-btn <%= readScaleVal == 1 ? "active-yellow" : "" %>" onclick="selectScale('reading', 1, 'yellow', this)"><span class="num">1</span><span class="lbl">Bermula</span></div>
+                                <div class="scale-btn <%= readScaleVal == 2 ? "active-yellow" : "" %>" onclick="selectScale('reading', 2, 'yellow', this)"><span class="num">2</span><span class="lbl">Asas</span></div>
+                                <div class="scale-btn <%= readScaleVal == 3 ? "active-yellow" : "" %>" onclick="selectScale('reading', 3, 'yellow', this)"><span class="num">3</span><span class="lbl">Membangun</span></div>
+                                <div class="scale-btn <%= readScaleVal == 4 ? "active-yellow" : "" %>" onclick="selectScale('reading', 4, 'yellow', this)">
                                     <span class="target-pill">SASARAN</span>
                                     <span class="num">4</span><span class="lbl">Mahir</span>
                                 </div>
-                                <div class="scale-btn" onclick="selectScale('reading', 5, 'yellow', this)"><span class="num">5</span><span class="lbl">Cemerlang</span></div>
+                                <div class="scale-btn <%= readScaleVal == 5 ? "active-yellow" : "" %>" onclick="selectScale('reading', 5, 'yellow', this)"><span class="num">5</span><span class="lbl">Cemerlang</span></div>
                             </div>
 
                             <div style="background: var(--emerald-bg); border: 1px solid var(--emerald-border); border-radius: 12px; padding: 8px 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: #065F46;">
@@ -765,7 +814,7 @@
                         </div>
 
                         <label style="font-size: 0.75rem; font-weight: 900; display: block; margin-bottom: 4px;">Tajuk / Topik Pentaksiran Writing <span style="color:red;">*</span></label>
-                        <input type="text" name="writing_progressName" id="writingTopic" class="nb-input" value="Kawalan Motor Halus & Genggaman Pensel (Tripod Grip)" oninput="updateLivePreview()">
+                        <input type="text" name="writing_progressName" id="writingTopic" class="nb-input" value="<%= writeTopicVal %>" oninput="updateLivePreview()">
 
                         <!-- Suggested Score Banner -->
                         <div style="background: #FFF1F2; border: 2px solid #FDA4AF; border-radius: 16px; padding: 12px 16px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center;">
@@ -850,24 +899,24 @@
                                         <%= IconUtil.icon("Award", "icon-xs") %>
                                         <span>Skala Penilaian Perkembangan (Rating Scale 1 - 5)</span>
                                     </label>
-                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: 8.0/10).</p>
+                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: <%= writeScaleVal * 2 %>.0/10).</p>
                                 </div>
                                 <div style="display: flex; gap: 6px;">
-                                    <span class="nb-badge" style="background:#FFF;">Skala <span id="lblWritingScale">4</span> / 5</span>
-                                    <span class="nb-badge badge-coral" id="lblWritingStatus">PROFICIENT</span>
+                                    <span class="nb-badge" style="background:#FFF;">Skala <span id="lblWritingScale"><%= writeScaleVal %></span> / 5</span>
+                                    <span class="nb-badge badge-coral" id="lblWritingStatus"><%= statusNames[writeScaleVal] %></span>
                                 </div>
                             </div>
 
-                            <input type="hidden" name="writing_ratingScale" id="writing_scale" value="4">
+                            <input type="hidden" name="writing_ratingScale" id="writing_scale" value="<%= writeScaleVal %>">
                             <div class="scale-grid">
-                                <div class="scale-btn" onclick="selectScale('writing', 1, 'coral', this)"><span class="num">1</span><span class="lbl">Bermula</span></div>
-                                <div class="scale-btn" onclick="selectScale('writing', 2, 'coral', this)"><span class="num">2</span><span class="lbl">Asas</span></div>
-                                <div class="scale-btn" onclick="selectScale('writing', 3, 'coral', this)"><span class="num">3</span><span class="lbl">Membangun</span></div>
-                                <div class="scale-btn active-coral" onclick="selectScale('writing', 4, 'coral', this)">
+                                <div class="scale-btn <%= writeScaleVal == 1 ? "active-coral" : "" %>" onclick="selectScale('writing', 1, 'coral', this)"><span class="num">1</span><span class="lbl">Bermula</span></div>
+                                <div class="scale-btn <%= writeScaleVal == 2 ? "active-coral" : "" %>" onclick="selectScale('writing', 2, 'coral', this)"><span class="num">2</span><span class="lbl">Asas</span></div>
+                                <div class="scale-btn <%= writeScaleVal == 3 ? "active-coral" : "" %>" onclick="selectScale('writing', 3, 'coral', this)"><span class="num">3</span><span class="lbl">Membangun</span></div>
+                                <div class="scale-btn <%= writeScaleVal == 4 ? "active-coral" : "" %>" onclick="selectScale('writing', 4, 'coral', this)">
                                     <span class="target-pill">SASARAN</span>
                                     <span class="num">4</span><span class="lbl">Mahir</span>
                                 </div>
-                                <div class="scale-btn" onclick="selectScale('writing', 5, 'coral', this)"><span class="num">5</span><span class="lbl">Cemerlang</span></div>
+                                <div class="scale-btn <%= writeScaleVal == 5 ? "active-coral" : "" %>" onclick="selectScale('writing', 5, 'coral', this)"><span class="num">5</span><span class="lbl">Cemerlang</span></div>
                             </div>
 
                             <div style="background: var(--emerald-bg); border: 1px solid var(--emerald-border); border-radius: 12px; padding: 8px 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: #065F46;">
@@ -902,7 +951,7 @@
                         </div>
 
                         <label style="font-size: 0.75rem; font-weight: 900; display: block; margin-bottom: 4px;">Tajuk / Topik Pentaksiran Counting <span style="color:red;">*</span></label>
-                        <input type="text" name="counting_progressName" id="countingTopic" class="nb-input" value="Pengecaman Nombor & Pembilangan Objek (1-30)" oninput="updateLivePreview()">
+                        <input type="text" name="counting_progressName" id="countingTopic" class="nb-input" value="<%= countTopicVal %>" oninput="updateLivePreview()">
 
                         <!-- Suggested Score Banner -->
                         <div style="background: #ECFDF5; border: 2px solid #6EE7B7; border-radius: 16px; padding: 12px 16px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center;">
@@ -987,24 +1036,24 @@
                                         <%= IconUtil.icon("Award", "icon-xs") %>
                                         <span>Skala Penilaian Perkembangan (Rating Scale 1 - 5)</span>
                                     </label>
-                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: 8.0/10).</p>
+                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: <%= countScaleVal * 2 %>.0/10).</p>
                                 </div>
                                 <div style="display: flex; gap: 6px;">
-                                    <span class="nb-badge" style="background:#FFF;">Skala <span id="lblCountingScale">4</span> / 5</span>
-                                    <span class="nb-badge badge-mint" id="lblCountingStatus">PROFICIENT</span>
+                                    <span class="nb-badge" style="background:#FFF;">Skala <span id="lblCountingScale"><%= countScaleVal %></span> / 5</span>
+                                    <span class="nb-badge badge-mint" id="lblCountingStatus"><%= statusNames[countScaleVal] %></span>
                                 </div>
                             </div>
 
-                            <input type="hidden" name="counting_ratingScale" id="counting_scale" value="4">
+                            <input type="hidden" name="counting_ratingScale" id="counting_scale" value="<%= countScaleVal %>">
                             <div class="scale-grid">
-                                <div class="scale-btn" onclick="selectScale('counting', 1, 'mint', this)"><span class="num">1</span><span class="lbl">Bermula</span></div>
-                                <div class="scale-btn" onclick="selectScale('counting', 2, 'mint', this)"><span class="num">2</span><span class="lbl">Asas</span></div>
-                                <div class="scale-btn" onclick="selectScale('counting', 3, 'mint', this)"><span class="num">3</span><span class="lbl">Membangun</span></div>
-                                <div class="scale-btn active-mint" onclick="selectScale('counting', 4, 'mint', this)">
+                                <div class="scale-btn <%= countScaleVal == 1 ? "active-mint" : "" %>" onclick="selectScale('counting', 1, 'mint', this)"><span class="num">1</span><span class="lbl">Bermula</span></div>
+                                <div class="scale-btn <%= countScaleVal == 2 ? "active-mint" : "" %>" onclick="selectScale('counting', 2, 'mint', this)"><span class="num">2</span><span class="lbl">Asas</span></div>
+                                <div class="scale-btn <%= countScaleVal == 3 ? "active-mint" : "" %>" onclick="selectScale('counting', 3, 'mint', this)"><span class="num">3</span><span class="lbl">Membangun</span></div>
+                                <div class="scale-btn <%= countScaleVal == 4 ? "active-mint" : "" %>" onclick="selectScale('counting', 4, 'mint', this)">
                                     <span class="target-pill">SASARAN</span>
                                     <span class="num">4</span><span class="lbl">Mahir</span>
                                 </div>
-                                <div class="scale-btn" onclick="selectScale('counting', 5, 'mint', this)"><span class="num">5</span><span class="lbl">Cemerlang</span></div>
+                                <div class="scale-btn <%= countScaleVal == 5 ? "active-mint" : "" %>" onclick="selectScale('counting', 5, 'mint', this)"><span class="num">5</span><span class="lbl">Cemerlang</span></div>
                             </div>
 
                             <div style="background: var(--emerald-bg); border: 1px solid var(--emerald-border); border-radius: 12px; padding: 8px 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: #065F46;">
@@ -1028,7 +1077,7 @@
                                 <p style="font-size: 0.7rem; color: #64748B;">Saranan praktikal untuk ibu bapa terus menyokong perkembangan murid di rumah secara santai.</p>
                             </div>
                         </div>
-                        <textarea name="homeRecommendation" class="nb-textarea" rows="3" placeholder="Contoh: Ibu bapa digalakkan meluangkan masa 10 minit membaca buku cerita bergambar bersama anak, mengira objek mainan semasa mengemas, dan memberi anak peluang melukis bebas...">${editingRecord != null ? editingRecord.homeRecommendation : ''}</textarea>
+                        <textarea name="homeRecommendation" class="nb-textarea" rows="3" placeholder="Contoh: Ibu bapa digalakkan meluangkan masa 10 minit membaca buku cerita bergambar bersama anak, mengira objek mainan semasa mengemas, dan memberi anak peluang melukis bebas..."><%= isEditMode ? savedHomeRec : "" %></textarea>
                     </div>
 
                     <!-- BOTTOM ACTION SUBMIT BAR -->
@@ -1040,10 +1089,10 @@
                             <span>Semua skor mencapai penanda aras umur (Skala 4: Mahir (Proficient)). Data akan terus dikemas kini ke Radar Chart.</span>
                         </div>
                         <div style="display: flex; gap: 12px;">
-                            <a href="${pageContext.request.contextPath}/learningProgress" class="nb-btn">Batal</a>
+                            <a href="${pageContext.request.contextPath}/ProgressServlet?studentId=${initialStudentId}" class="nb-btn">Batal</a>
                             <button type="submit" class="nb-btn nb-btn-yellow" style="padding: 10px 24px;">
                                 <%= IconUtil.icon("Save", "icon-xs") %>
-                                <span>Simpan Semua Rekod Pentaksiran (3 Teras)</span>
+                                <span><%= isEditMode ? "Kemas Kini Rekod Pentaksiran" : "Simpan Semua Rekod Pentaksiran (3 Teras)" %></span>
                             </button>
                         </div>
                     </div>

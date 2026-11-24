@@ -1,0 +1,342 @@
+ /* ==========================================================================
+           1. LAYOUT ASAS & NEOBRUTALISM THEME
+           ========================================================================== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html {
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #FFFDF7;
+            color: #2D3436;
+        }
+
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .app-sidebar-wrapper {
+            width: 280px;
+            flex-shrink: 0;
+            background: #FFFFFF;
+            border-right: 3px solid #2D3436;
+        }
+
+        .app-main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background-color: #FFFDF7;
+        }
+
+        .app-header-wrapper {
+            flex-shrink: 0;
+            background: #FFFFFF;
+            border-bottom: 3px solid #2D3436;
+        }
+
+        .app-content-body {
+            flex-grow: 1;
+            padding: 28px 36px;
+            overflow-y: auto;
+        }
+
+        .rd-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        /* ==========================================================================
+           2. TOP BAR & BUTTONS (GAYA PILL BUTTON BERBAYANG)
+           ========================================================================== */
+        .rd-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .rd-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #64748B;
+        }
+
+        .nb-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background-color: #FFFFFF;
+            color: #2D3436;
+            border: 2.5px solid #2D3436;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 900;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0px 4px 0px 0px #2D3436;
+            transition: all 0.12s ease;
+        }
+        .nb-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0px 5px 0px 0px #2D3436;
+        }
+        .nb-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0px 2px 0px 0px #2D3436;
+        }
+
+        .nb-btn-yellow {
+            background-color: #FFD166;
+            color: #2D3436;
+        }
+
+        /* ==========================================================================
+           3. MAIN BANNER CARD
+           ========================================================================== */
+        .nb-card {
+            background-color: #FFFFFF;
+            border: 2.5px solid #2D3436;
+            border-radius: 26px;
+            padding: 24px 28px;
+            box-shadow: 0px 5px 0px 0px #2D3436;
+        }
+
+        .rd-banner-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+
+        .nb-pill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 2px solid #2D3436;
+        }
+        .badge-emerald {
+            background-color: #10B981;
+            color: #2D3436;
+        }
+        .badge-amber {
+            background-color: #FFD166;
+            color: #2D3436;
+        }
+
+        .badge-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            background-color: #F8FAFC;
+            border: 1.5px solid #CBD5E1;
+            color: #334155;
+        }
+
+        /* KOTAK KUNING PURATA KESELURUHAN */
+        .rd-avg-box {
+            background-color: #FFD166;
+            border: 2.5px solid #2D3436;
+            border-radius: 20px;
+            padding: 14px 24px;
+            text-align: center;
+            min-width: 175px;
+            box-shadow: 3px 3px 0px 0px #2D3436;
+        }
+
+        .rd-alert-box {
+            margin-top: 18px;
+            border-radius: 16px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
+        .rd-alert-warn {
+            background-color: #FFFBEB;
+            border: 2px solid #F59E0B;
+            color: #92400E;
+        }
+        .rd-alert-ok {
+            background-color: #ECFDF5;
+            border: 2px solid #10B981;
+            color: #065F46;
+        }
+
+        /* ==========================================================================
+           4. 3 DOMAIN CARDS GRID (COUNTING / WRITING / READING)
+           ========================================================================== */
+        .rd-domain-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            align-items: stretch;
+        }
+        @media (max-width: 1024px) { .rd-domain-grid { grid-template-columns: 1fr; } }
+
+        .rd-domain-card {
+            background-color: #FFFFFF;
+            border: 2.5px solid #2D3436;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 4px 4px 0px 0px #2D3436;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rd-domain-header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #FFFFFF;
+            border-bottom: 2.5px solid #2D3436;
+        }
+        .hdr-counting { background-color: #F99B35; } /* Oren */
+        .hdr-writing  { background-color: #F26463; } /* Coral / Merah Jambu */
+        .hdr-reading  { background-color: #6B5CE7; } /* Ungu / Indigo */
+
+        .rd-icon-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.22);
+            border: 1.5px solid rgba(255, 255, 255, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            flex-shrink: 0;
+        }
+
+        .rd-domain-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-grow: 1;
+        }
+
+        /* Kotak Skala Kemahiran 1 - 5 */
+        .rd-scale-box {
+            background-color: #F8FAFC;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 14px;
+        }
+        .rd-scale-bars {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin: 10px 0 8px 0;
+        }
+        .rd-bar {
+            height: 8px;
+            border-radius: 999px;
+            background-color: #CBD5E1;
+        }
+        .bar-counting { background-color: #F99B35; }
+        .bar-writing  { background-color: #F26463; }
+        .bar-reading  { background-color: #6B5CE7; }
+
+        /* Cip Status Sasaran Umur */
+        .rd-status-chip {
+            border-radius: 14px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.74rem;
+            line-height: 1.4;
+        }
+        .chip-ok {
+            background-color: #ECFDF5;
+            border: 1.5px solid #6EE7B7;
+            color: #065F46;
+        }
+        .chip-warn {
+            background-color: #FFF1F2;
+            border: 1.5px solid #FDA4AF;
+            color: #9F1239;
+        }
+
+        /* Kotak Catatan Guru */
+        .rd-notes-box {
+            background-color: #F8FAFC;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: 0.8rem;
+            font-style: italic;
+            font-weight: 700;
+            color: #334155;
+            line-height: 1.45;
+        }
+
+        /* ==========================================================================
+           5. KAD CADANGAN PENGUKUHAN DI RUMAH (BERASINGAN DI BAWAH)
+           ========================================================================== */
+        .rd-recommendation-card {
+            background-color: #FFFBEB;
+            border: 2.5px solid #2D3436;
+            border-radius: 24px;
+            padding: 22px 26px;
+            box-shadow: 4px 4px 0px 0px #2D3436;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .rd-rec-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background-color: #FFD166;
+            border: 2px solid #2D3436;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2D3436;
+            flex-shrink: 0;
+            box-shadow: 2px 2px 0px 0px #2D3436;
+        }
+        .rd-rec-content-box {
+            margin-top: 10px;
+            background-color: #FFFFFF;
+            border: 2px solid #2D3436;
+            border-radius: 16px;
+            padding: 14px 18px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #2D3436;
+            line-height: 1.55;
+        }
+
+        @media print {
+            .app-sidebar-wrapper, .app-header-wrapper, .no-print { display: none !important; }
+            .app-content-body { padding: 0; }
+            .nb-card, .rd-domain-card, .rd-recommendation-card { box-shadow: none; }
+        }

@@ -1,0 +1,314 @@
+ * { box-sizing: border-box; }
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #FAF5EF;
+        }
+
+        .app-layout {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .app-sidebar-wrapper {
+            width: 280px;
+            flex-shrink: 0;
+            background-color: #FFFFFF;
+            z-index: 10;
+        }
+
+        .app-main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: #FAF5EF;
+        }
+
+        .app-header-wrapper {
+            flex-shrink: 0;
+            background-color: #FFFFFF;
+        }
+
+        .app-content-body {
+            flex-grow: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+        }
+
+        .profile-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Title Row */
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #2D3436;
+            margin: 0;
+        }
+
+        .btn-edit-toggle {
+            padding: 10px 24px;
+            border-radius: 9999px;
+            border: 2.5px solid #2D3436;
+            font-size: 0.85rem;
+            font-weight: 900;
+            background-color: #FFFFFF;
+            color: #2D3436;
+            box-shadow: 3.5px 3.5px 0px 0px #2D3436;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-edit-toggle:hover {
+            background-color: #FFD02C;
+            transform: translate(-1px, -1px);
+        }
+
+        /* Grid Layout */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 768px) {
+            .profile-grid {
+                grid-template-columns: 320px 1fr;
+            }
+        }
+
+        /* Left Card */
+        .profile-left-card {
+            background-color: #FFFFFF;
+            border: 3px solid #2D3436;
+            border-radius: 24px;
+            padding: 28px 20px;
+            box-shadow: 5px 5px 0px 0px #2D3436;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            justify-content: space-between;
+            min-height: 420px;
+        }
+
+        .avatar-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #2D3436;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 900;
+            box-shadow: 3.5px 3.5px 0px 0px #2D3436;
+            margin-bottom: 12px;
+        }
+
+        .user-name-title {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: #2D3436;
+            margin: 0 0 6px 0;
+        }
+
+        .role-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.65rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 4px 14px;
+            border-radius: 9999px;
+            border: 2px solid #2D3436;
+            box-shadow: 1.5px 1.5px 0px 0px #2D3436;
+        }
+
+        .pill-field-group {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 2px dashed #CBD5E1;
+            text-align: left;
+        }
+
+        .field-label-center {
+            font-size: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #2D3436;
+            margin-bottom: 6px;
+            text-align: center;
+            display: block;
+        }
+
+        .pill-input-box {
+            width: 100%;
+            border-radius: 9999px;
+            border: 2px solid #2D3436;
+            padding: 10px 16px;
+            text-align: center;
+            font-weight: 900;
+            font-size: 0.85rem;
+            background-color: #FAF5EF;
+            color: #2D3436;
+            box-shadow: 2.5px 2.5px 0px 0px #2D3436;
+            outline: none;
+        }
+
+        /* Right Card */
+        .profile-right-card {
+            background-color: #FFFFFF;
+            border: 3px solid #2D3436;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 5px 5px 0px 0px #2D3436;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 18px;
+            min-height: 420px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-label {
+            font-size: 0.85rem;
+            font-weight: 900;
+            color: #2D3436;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .field-input {
+            width: 100%;
+            border-radius: 9999px;
+            border: 2px solid #2D3436;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #2D3436;
+            background-color: #FAF5EF;
+            box-shadow: 2.5px 2.5px 0px 0px #2D3436;
+            outline: none;
+        }
+
+        .field-input.editable {
+            background-color: #FFFFFF;
+        }
+
+        .field-input.editable:focus {
+            background-color: #FFF9E6;
+        }
+
+        /* Container Khas Untuk Password & Eye Icon */
+        .password-input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-input-wrapper .field-input {
+            padding-right: 48px;
+        }
+
+        .btn-toggle-eye {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #2D3436;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.15s ease;
+        }
+
+        .btn-toggle-eye:hover {
+            background-color: rgba(45, 52, 54, 0.1);
+        }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .btn-cancel {
+            padding: 10px 24px;
+            border-radius: 9999px;
+            border: 2px solid #2D3436;
+            font-size: 0.85rem;
+            font-weight: 800;
+            background-color: #FFFFFF;
+            color: #2D3436;
+            box-shadow: 2.5px 2.5px 0px 0px #2D3436;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-save {
+            padding: 10px 28px;
+            border-radius: 9999px;
+            border: 2px solid #2D3436;
+            font-size: 0.85rem;
+            font-weight: 900;
+            background-color: #D1FAE5;
+            color: #065F46;
+            box-shadow: 3px 3px 0px 0px #2D3436;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .alert-success-banner {
+            background-color: #D1FAE5;
+            border: 2.5px solid #2D3436;
+            color: #065F46;
+            padding: 12px 20px;
+            border-radius: 16px;
+            box-shadow: 3px 3px 0px 0px #2D3436;
+            font-size: 0.85rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }

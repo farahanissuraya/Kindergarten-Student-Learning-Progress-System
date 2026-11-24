@@ -1,0 +1,457 @@
+/* ==========================================================================
+           1. LAYOUT WRAPPER (SIDEBAR + HEADER + MAIN CONTENT)
+           ========================================================================== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html {
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #FFFDF7;
+            color: #2D3436;
+        }
+
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .app-sidebar-wrapper {
+            width: 280px;
+            flex-shrink: 0;
+            background: #FFFFFF;
+            border-right: 3px solid #2D3436;
+        }
+
+        .app-main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background-color: #FFFDF7;
+        }
+
+        .app-header-wrapper {
+            flex-shrink: 0;
+            background: #FFFFFF;
+            border-bottom: 3px solid #2D3436;
+        }
+
+        .app-content-body {
+            flex-grow: 1;
+            padding: 28px 36px;
+            overflow-y: auto;
+        }
+
+        /* ==========================================================================
+           2. NEOBRUTALISM THEME & COMPONENT STYLES
+           ========================================================================== */
+        :root {
+            --bg-canvas: #FFFDF7;
+            --border-dark: #2D3436;
+            --yellow-accent: #FFD166;
+            --coral-accent: #FF6B6B;
+            --mint-accent: #2EC4B6;
+            --purple-accent: #7C3AED;
+            --purple-light: #F3E8FF;
+            --emerald-bg: #ECFDF5;
+            --emerald-border: #10B981;
+            --danger-bg: #FFF1F2;
+            --danger-border: #F43F5E;
+            --shadow-sm: 2px 2px 0px 0px var(--border-dark);
+            --shadow-md: 3px 3px 0px 0px var(--border-dark);
+            --shadow-lg: 4px 4px 0px 0px var(--border-dark);
+        }
+
+        .nb-wrapper, #progressForm {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ==========================================================================
+           CLEAN PAGE HEADER (GAYA REGISTER STUDENT)
+           ========================================================================== */
+        .page-top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed #CBD5E1;
+        }
+        .page-top-pill {
+            display: inline-block;
+            background-color: var(--yellow-accent);
+            color: var(--border-dark);
+            border: 2px solid var(--border-dark);
+            border-radius: 999px;
+            padding: 4px 14px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+        }
+        .page-top-title {
+            font-size: 1.95rem;
+            font-weight: 900;
+            color: var(--border-dark);
+            letter-spacing: -0.5px;
+            line-height: 1.15;
+        }
+        .btn-back-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background-color: #FFFFFF;
+            color: var(--border-dark);
+            border: 2.5px solid var(--border-dark);
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 900;
+            text-decoration: none;
+            box-shadow: 0px 4px 0px 0px var(--border-dark);
+            transition: all 0.12s ease;
+        }
+        .btn-back-pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 0px 5px 0px 0px var(--border-dark);
+            background-color: #FFFBEB;
+        }
+        .btn-back-pill:active {
+            transform: translateY(2px);
+            box-shadow: 0px 2px 0px 0px var(--border-dark);
+        }
+
+        /* CARD CONTAINERS */
+        .nb-card {
+            background-color: #FFFFFF;
+            border: 2.5px solid var(--border-dark);
+            border-radius: 24px;
+            padding: 20px 24px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* BADGES */
+        .nb-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid var(--border-dark);
+        }
+        .badge-purple { background-color: #EEF2FF; color: #4338CA; border-color: #C7D2FE; }
+        .badge-mint { background-color: var(--mint-accent); color: var(--border-dark); box-shadow: 1px 1px 0px 0px var(--border-dark); }
+        .badge-yellow { background-color: var(--yellow-accent); color: var(--border-dark); }
+        .badge-coral { background-color: var(--coral-accent); color: #FFFFFF; }
+        .badge-target { background-color: var(--purple-light); color: var(--purple-accent); border-color: #D8B4FE; }
+        .badge-success { background-color: #D1FAE5; color: #065F46; border-color: #34D399; }
+        .badge-warning { background-color: #FFE4E6; color: #BE123C; border-color: #F43F5E; }
+
+        /* BUTTONS */
+        .nb-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border: 2px solid var(--border-dark);
+            border-radius: 14px;
+            background-color: #FFFFFF;
+            color: var(--border-dark);
+            font-weight: 900;
+            font-size: 0.85rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.1s ease;
+            text-decoration: none;
+        }
+        .nb-btn:hover { transform: translate(-1px, -1px); box-shadow: var(--shadow-md); }
+        .nb-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px 0px var(--border-dark); }
+        .nb-btn-dark { background-color: var(--border-dark); color: #FFFFFF; }
+        .nb-btn-yellow { background-color: var(--yellow-accent); color: var(--border-dark); box-shadow: var(--shadow-md); }
+        .nb-btn-coral { background-color: var(--coral-accent); color: #FFFFFF; }
+        .nb-btn-mint { background-color: var(--mint-accent); color: var(--border-dark); }
+
+        /* INPUTS & SELECTS */
+        .nb-input, .nb-select, .nb-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--border-dark);
+            border-radius: 16px;
+            background-color: var(--bg-canvas);
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--border-dark);
+            outline: none;
+        }
+        .nb-input:focus, .nb-select:focus, .nb-textarea:focus {
+            background-color: #FFFFFF;
+            border-color: var(--border-dark);
+            box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.4);
+        }
+
+        /* LIVE PREVIEW GRID */
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-top: 14px;
+        }
+        @media (max-width: 768px) { .preview-grid { grid-template-columns: 1fr; } }
+        .preview-card {
+            background-color: #FFFFFF;
+            border: 2px solid var(--border-dark);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: transform 0.12s ease, opacity 0.15s ease;
+        }
+        .preview-card:hover { transform: translateY(-2px); }
+        .preview-card.locked {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        .preview-card.locked:hover {
+            transform: none;
+        }
+
+        /* ==========================================================================
+           3. STEP WIZARD BAR (GAYA REGISTER STUDENT: SOLID YELLOW ACTIVE + MUTED LOCKED)
+           ========================================================================== */
+        .step-wizard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+        @media (max-width: 960px) { .step-wizard-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 540px) { .step-wizard-grid { grid-template-columns: 1fr; } }
+
+        .step-pill-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background-color: #FFFFFF;
+            border: 2px solid #64748B;
+            border-radius: 20px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s ease;
+        }
+        .step-pill-btn:hover:not(.locked):not(.active) {
+            border-color: var(--border-dark);
+            background-color: #FFFDF7;
+        }
+
+        /* Active Step: Kuning Penuh + Shadow Gelap + Bulatan Nombor Hitam */
+        .step-pill-btn.active {
+            background-color: var(--yellow-accent);
+            border: 2.5px solid var(--border-dark);
+            box-shadow: 0px 4px 0px 0px var(--border-dark);
+        }
+
+        /* Completed Step (Sudah dilalui & boleh diklik semula) */
+        .step-pill-btn.completed {
+            background-color: #FFFFFF;
+            border: 2px solid var(--border-dark);
+            box-shadow: 0px 2px 0px 0px var(--border-dark);
+        }
+
+        /* Locked Step (Belum tekan Seterusnya) */
+        .step-pill-btn.locked {
+            background-color: #FFFFFF;
+            border: 2px solid #94A3B8;
+            opacity: 0.72;
+            cursor: not-allowed;
+        }
+
+        .step-num-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #64748B;
+            background-color: #FFFFFF;
+            color: #475569;
+            font-weight: 900;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+        .step-pill-btn.active .step-num-circle {
+            background-color: var(--border-dark);
+            border-color: var(--border-dark);
+            color: #FFFFFF;
+        }
+        .step-pill-btn.completed .step-num-circle {
+            background-color: #D1FAE5;
+            border-color: var(--border-dark);
+            color: #065F46;
+        }
+
+        .step-pill-title {
+            font-size: 0.92rem;
+            font-weight: 900;
+            color: #475569;
+            line-height: 1.2;
+        }
+        .step-pill-sub {
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: #64748B;
+            margin-top: 2px;
+        }
+        .step-pill-btn.active .step-pill-title,
+        .step-pill-btn.completed .step-pill-title {
+            color: var(--border-dark);
+        }
+        .step-pill-btn.active .step-pill-sub {
+            color: #334155;
+        }
+
+        .step-panel { display: none; }
+        .step-panel.active { display: block; animation: fadeStepIn 0.18s ease-out; }
+        @keyframes fadeStepIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* CHECKLIST ITEMS */
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 2px solid var(--border-dark);
+            margin-bottom: 8px;
+            background-color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .checklist-item.checked-yellow { background-color: #FFFBEB; border-color: #F59E0B; }
+        .checklist-item.checked-coral { background-color: #FFF1F2; border-color: #F43F5E; }
+        .checklist-item.checked-mint { background-color: #ECFDF5; border-color: #10B981; }
+
+        .check-box {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--border-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 12px;
+            font-weight: 900;
+            background: #FFF;
+            flex-shrink: 0;
+        }
+        .checked-yellow .check-box { background: var(--yellow-accent); }
+        .checked-coral .check-box { background: var(--coral-accent); color: #FFF; }
+        .checked-mint .check-box { background: var(--mint-accent); }
+
+        .btn-del-crit {
+            background: transparent;
+            border: none;
+            color: #94A3B8;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 6px;
+        }
+        .btn-del-crit:hover { color: #EF4444; background-color: #FEE2E2; }
+
+        /* RATING SCALE 1 - 5 GRID */
+        .scale-selector-container {
+            background-color: var(--bg-canvas);
+            border: 2px solid var(--border-dark);
+            border-radius: 18px;
+            padding: 16px;
+            margin-top: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+        .scale-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .scale-btn {
+            position: relative;
+            background: #FFFFFF;
+            border: 2px solid var(--border-dark);
+            border-radius: 14px;
+            padding: 10px 6px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.15s;
+        }
+        .scale-btn .num { font-size: 1.2rem; font-weight: 900; display: block; }
+        .scale-btn .lbl { font-size: 0.7rem; font-weight: 700; color: #64748B; }
+
+        /* ACTIVE SCALE COLORED STATES */
+        .scale-btn.active-yellow { background-color: var(--yellow-accent); transform: translate(-1px, -1px); box-shadow: var(--shadow-md); }
+        .scale-btn.active-coral { background-color: var(--coral-accent); color: #FFF; transform: translate(-1px, -1px); box-shadow: var(--shadow-md); }
+        .scale-btn.active-coral .lbl { color: #FFE4E6; }
+        .scale-btn.active-mint { background-color: var(--mint-accent); transform: translate(-1px, -1px); box-shadow: var(--shadow-md); }
+
+        .target-pill {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--purple-accent);
+            color: #FFF;
+            font-size: 0.55rem;
+            font-weight: 900;
+            padding: 1px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border-dark);
+            text-transform: uppercase;
+        }
+
+        /* BENCHMARK STATUS BOX (GREEN vs RED DANGER ALERT) */
+        .benchmark-box {
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+        .benchmark-box.ok {
+            background: var(--emerald-bg);
+            border: 1.5px solid var(--emerald-border);
+            color: #065F46;
+            align-items: center;
+        }
+        .benchmark-box.alert {
+            background-color: var(--danger-bg);
+            border: 2px solid var(--danger-border);
+            color: #9F1239;
+            box-shadow: 2.5px 2.5px 0px 0px var(--danger-border);
+        }

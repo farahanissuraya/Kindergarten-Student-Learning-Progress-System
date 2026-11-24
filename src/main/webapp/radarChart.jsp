@@ -75,76 +75,7 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body {
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            color: #2D3436;
-            overflow: hidden;
-            padding: 0 6px 6px 0; /* Ruang untuk box-shadow 5px kanan & bawah */
-        }
-
-        .nb-radar-card {
-            background-color: #FFFFFF;
-            border: 3px solid #2D3436;
-            border-radius: 24px;
-            padding: 20px 22px;
-            box-shadow: 5px 5px 0px 0px #2D3436;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            user-select: none;
-        }
-
-        .series-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 11px;
-            border-radius: 999px;
-            border: 2px solid #2D3436;
-            cursor: pointer;
-            font-size: 0.72rem;
-            font-weight: 800;
-            background: #F1F5F9;
-            color: #64748B;
-            transition: all 0.15s ease;
-        }
-        .series-btn.active-target { background-color: #D1FAE5; color: #065F46; box-shadow: 2px 2px 0px 0px #2D3436; }
-        .series-btn.active-class { background-color: #EDE9FE; color: #5B21B6; box-shadow: 2px 2px 0px 0px #2D3436; }
-        .series-btn.active-student { background-color: #FEF3C7; color: #78350F; box-shadow: 2px 2px 0px 0px #2D3436; }
-
-        .series-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            border: 1px solid #2D3436;
-            display: inline-block;
-            flex-shrink: 0;
-        }
-
-        .alert-box {
-            padding: 11px 14px;
-            border-radius: 16px;
-            border: 2px solid #2D3436;
-            box-shadow: 3px 3px 0px 0px #F59E0B;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            font-size: 0.76rem;
-            line-height: 1.4;
-        }
-        .alert-warning { background-color: #FFFBEB; border-color: #F59E0B; }
-        .alert-success { background-color: #ECFDF5; border-color: #10B981; box-shadow: 3px 3px 0px 0px #10B981; }
-
-        .vertex-dot { cursor: pointer; transition: transform 0.2s; }
-        .vertex-dot:hover { transform: scale(1.25); }
-    </style>
+	<link rel="stylesheet" href="${pageContext.request.contextPath}/css/radarChart.css">
 </head>
 <body>
 

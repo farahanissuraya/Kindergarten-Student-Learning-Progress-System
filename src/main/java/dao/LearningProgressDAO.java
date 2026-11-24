@@ -338,4 +338,47 @@ public class LearningProgressDAO {
         }
         return list;
     }
+    
+    public List<LearningProgress> getRecordsByStudentId(int studentID) {
+        List<LearningProgress> list = new ArrayList<>();
+        String sql = "SELECT progressID, studentID, domainName, progressName, progressPercentage, " +
+                     "ratingScale, progressStatus, progressDate, notes, assessorName " +
+                     "FROM learningprogress WHERE studentID = ? ORDER BY progressDate DESC, progressID DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, studentID);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    LearningProgress lp = new LearningProgress();
+                    lp.setProgressID(rs.getInt("progressID"));
+                    lp.setStudentID(rs.getInt("studentID"));
+                    lp.setDomainName(rs.getString("domainName"));
+                    lp.setProgressName(rs.getString("progressName"));
+                    lp.setProgressPercentage(rs.getDouble("progressPercentage"));
+                    lp.setRatingScale(rs.getInt("ratingScale"));
+                    lp.setProgressStatus(rs.getString("progressStatus"));
+                    lp.setNotes(rs.getString("notes"));
+                    lp.setAssessorName(rs.getString("assessorName"));
+
+                    String rawDate = "";
+                    try {
+                        java.sql.Date d = rs.getDate("progressDate");
+                        if (d != null) rawDate = d.toString();
+                    } catch (Exception ex) {
+                        rawDate = rs.getString("progressDate");
+                    }
+                    if (rawDate != null && rawDate.length() >= 10) {
+                        rawDate = rawDate.substring(0, 10);
+                    }
+                    lp.setProgressDate(rawDate);
+                    list.add(lp);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
 }

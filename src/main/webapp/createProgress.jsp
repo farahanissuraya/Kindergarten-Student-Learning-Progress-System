@@ -132,7 +132,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= isEditMode ? "Kemaskini Rekod Pentaksiran" : "Borang Pentaksiran Komprehensif" %> - Keedflix Centre</title>
+    <title><%= isEditMode ? "Kemaskini Rekod Pentaksiran" : "Borang Pentaksiran Komprehensif" %> - Keedsflix Centre</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
     
     <style>
@@ -176,7 +176,7 @@
 
         .app-content-body {
             flex-grow: 1;
-            padding: 24px 32px;
+            padding: 28px 36px;
             overflow-y: auto;
         }
 
@@ -193,23 +193,83 @@
             --purple-light: #F3E8FF;
             --emerald-bg: #ECFDF5;
             --emerald-border: #10B981;
+            --danger-bg: #FFF1F2;
+            --danger-border: #F43F5E;
             --shadow-sm: 2px 2px 0px 0px var(--border-dark);
             --shadow-md: 3px 3px 0px 0px var(--border-dark);
             --shadow-lg: 4px 4px 0px 0px var(--border-dark);
         }
 
-        .nb-wrapper {
+        .nb-wrapper, #progressForm {
             max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
+        /* ==========================================================================
+           CLEAN PAGE HEADER (GAYA REGISTER STUDENT)
+           ========================================================================== */
+        .page-top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed #CBD5E1;
+        }
+        .page-top-pill {
+            display: inline-block;
+            background-color: var(--yellow-accent);
+            color: var(--border-dark);
+            border: 2px solid var(--border-dark);
+            border-radius: 999px;
+            padding: 4px 14px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+        }
+        .page-top-title {
+            font-size: 1.95rem;
+            font-weight: 900;
+            color: var(--border-dark);
+            letter-spacing: -0.5px;
+            line-height: 1.15;
+        }
+        .btn-back-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background-color: #FFFFFF;
+            color: var(--border-dark);
+            border: 2.5px solid var(--border-dark);
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 900;
+            text-decoration: none;
+            box-shadow: 0px 4px 0px 0px var(--border-dark);
+            transition: all 0.12s ease;
+        }
+        .btn-back-pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 0px 5px 0px 0px var(--border-dark);
+            background-color: #FFFBEB;
+        }
+        .btn-back-pill:active {
+            transform: translateY(2px);
+            box-shadow: 0px 2px 0px 0px var(--border-dark);
+        }
+
         /* CARD CONTAINERS */
         .nb-card {
             background-color: #FFFFFF;
-            border: 2px solid var(--border-dark);
+            border: 2.5px solid var(--border-dark);
             border-radius: 24px;
             padding: 20px 24px;
             box-shadow: var(--shadow-lg);
@@ -234,6 +294,7 @@
         .badge-coral { background-color: var(--coral-accent); color: #FFFFFF; }
         .badge-target { background-color: var(--purple-light); color: var(--purple-accent); border-color: #D8B4FE; }
         .badge-success { background-color: #D1FAE5; color: #065F46; border-color: #34D399; }
+        .badge-warning { background-color: #FFE4E6; color: #BE123C; border-color: #F43F5E; }
 
         /* BUTTONS */
         .nb-btn {
@@ -241,9 +302,9 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 8px 18px;
+            padding: 9px 18px;
             border: 2px solid var(--border-dark);
-            border-radius: 16px;
+            border-radius: 14px;
             background-color: #FFFFFF;
             color: var(--border-dark);
             font-weight: 900;
@@ -278,20 +339,6 @@
             box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.4);
         }
 
-        /* DOMAIN FILTER STRIP */
-        .filter-strip {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px dashed rgba(45, 52, 54, 0.2);
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .filter-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
-        .filter-btn-group .nb-btn { border-radius: 12px; font-size: 0.8rem; padding: 6px 14px; }
-
         /* LIVE PREVIEW GRID */
         .preview-grid {
             display: grid;
@@ -309,6 +356,119 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            cursor: pointer;
+            transition: transform 0.12s ease, opacity 0.15s ease;
+        }
+        .preview-card:hover { transform: translateY(-2px); }
+        .preview-card.locked {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        .preview-card.locked:hover {
+            transform: none;
+        }
+
+        /* ==========================================================================
+           3. STEP WIZARD BAR (GAYA REGISTER STUDENT: SOLID YELLOW ACTIVE + MUTED LOCKED)
+           ========================================================================== */
+        .step-wizard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+        @media (max-width: 960px) { .step-wizard-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 540px) { .step-wizard-grid { grid-template-columns: 1fr; } }
+
+        .step-pill-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background-color: #FFFFFF;
+            border: 2px solid #64748B;
+            border-radius: 20px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s ease;
+        }
+        .step-pill-btn:hover:not(.locked):not(.active) {
+            border-color: var(--border-dark);
+            background-color: #FFFDF7;
+        }
+
+        /* Active Step: Kuning Penuh + Shadow Gelap + Bulatan Nombor Hitam */
+        .step-pill-btn.active {
+            background-color: var(--yellow-accent);
+            border: 2.5px solid var(--border-dark);
+            box-shadow: 0px 4px 0px 0px var(--border-dark);
+        }
+
+        /* Completed Step (Sudah dilalui & boleh diklik semula) */
+        .step-pill-btn.completed {
+            background-color: #FFFFFF;
+            border: 2px solid var(--border-dark);
+            box-shadow: 0px 2px 0px 0px var(--border-dark);
+        }
+
+        /* Locked Step (Belum tekan Seterusnya) */
+        .step-pill-btn.locked {
+            background-color: #FFFFFF;
+            border: 2px solid #94A3B8;
+            opacity: 0.72;
+            cursor: not-allowed;
+        }
+
+        .step-num-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #64748B;
+            background-color: #FFFFFF;
+            color: #475569;
+            font-weight: 900;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+        .step-pill-btn.active .step-num-circle {
+            background-color: var(--border-dark);
+            border-color: var(--border-dark);
+            color: #FFFFFF;
+        }
+        .step-pill-btn.completed .step-num-circle {
+            background-color: #D1FAE5;
+            border-color: var(--border-dark);
+            color: #065F46;
+        }
+
+        .step-pill-title {
+            font-size: 0.92rem;
+            font-weight: 900;
+            color: #475569;
+            line-height: 1.2;
+        }
+        .step-pill-sub {
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: #64748B;
+            margin-top: 2px;
+        }
+        .step-pill-btn.active .step-pill-title,
+        .step-pill-btn.completed .step-pill-title {
+            color: var(--border-dark);
+        }
+        .step-pill-btn.active .step-pill-sub {
+            color: #334155;
+        }
+
+        .step-panel { display: none; }
+        .step-panel.active { display: block; animation: fadeStepIn 0.18s ease-out; }
+        @keyframes fadeStepIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* CHECKLIST ITEMS */
@@ -407,6 +567,32 @@
             border: 1px solid var(--border-dark);
             text-transform: uppercase;
         }
+
+        /* BENCHMARK STATUS BOX (GREEN vs RED DANGER ALERT) */
+        .benchmark-box {
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+        .benchmark-box.ok {
+            background: var(--emerald-bg);
+            border: 1.5px solid var(--emerald-border);
+            color: #065F46;
+            align-items: center;
+        }
+        .benchmark-box.alert {
+            background-color: var(--danger-bg);
+            border: 2px solid var(--danger-border);
+            color: #9F1239;
+            box-shadow: 2.5px 2.5px 0px 0px var(--danger-border);
+        }
     </style>
 </head>
 <body>
@@ -435,27 +621,22 @@
                     <input type="hidden" name="editReportDate" value="<%= isEditMode ? editReportDate.trim() : "" %>">
                     <input type="hidden" name="activeDomainFilter" id="activeDomainFilter" value="All">
 
-                    <!-- TOP BREADCRUMB & HEADER BAR -->
-                    <div class="nb-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                        <div style="display: flex; align-items: center; gap: 14px;">
-                            <a href="${pageContext.request.contextPath}/ProgressServlet?studentId=${initialStudentId}" class="nb-btn">
-                                <%= IconUtil.icon("ArrowLeft", "icon-xs") %>
-                                <span>Kembali</span>
-                            </a>
-                            <div>
-                                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 4px;">
-                                    <span class="nb-badge badge-purple"><%= isEditMode ? "MOD KEMASKINI REKOD" : "PENTAKSIRAN BERSEPADU KSPK" %></span>
-                                    <span class="nb-badge badge-mint">SKALA RATING 1 - 5 (RADAR CHART SYNC)</span>
-                                </div>
-                                <h1 style="font-size: 1.25rem; font-weight: 900;">
-                                    <%= isEditMode ? "Kemaskini Rekod Pentaksiran (" + editReportDate.trim() + ")" : "Borang Pentaksiran Komprehensif (Reading, Writing & Counting)" %>
-                                </h1>
-                            </div>
+                    <!-- ==========================================================================
+                         CLEAN PAGE HEADER (GAYA REGISTER STUDENT + GARISAN PUTUS-PUTUS)
+                         ========================================================================== -->
+                    <div class="page-top-header">
+                        <div>
+                            <span class="page-top-pill">
+                                <%= isEditMode ? "MOD KEMASKINI REKOD PENTAKSIRAN" : "PENTAKSIRAN BERSEPADU KSPK" %>
+                            </span>
+                            <h1 class="page-top-title">
+                                <%= isEditMode ? "Kemaskini Rekod Pentaksiran (" + editReportDate.trim() + ")" : "Borang Pentaksiran Komprehensif" %>
+                            </h1>
                         </div>
                     </div>
 
                     <!-- STUDENT, CLASS & DATE CONTEXT SELECTOR CARD (ORACLE DB SYNCED) -->
-                    <div class="nb-card" style="margin-top: 16px;">
+                    <div class="nb-card">
                         <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; align-items: start;">
                             
                             <!-- Kotak Kiri: Pilihan Kelas + Sasaran Murid Dinilai -->
@@ -528,34 +709,11 @@
                             </div>
 
                         </div>
-
-                        <!-- DOMAIN CONTAINER FILTER -->
-                        <div class="filter-strip">
-                            <div style="font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 6px;">
-                                <%= IconUtil.icon("Layers", "icon-xs") %>
-                                <span>PILIHAN PAPARAN CONTAINER:</span>
-                            </div>
-                            <div class="filter-btn-group">
-                                <button type="button" class="nb-btn nb-btn-dark" onclick="filterDomain('All', this)">Semua 3 Teras (All 3)</button>
-                                <button type="button" class="nb-btn" onclick="filterDomain('Reading', this)">
-                                    <%= IconUtil.icon("BookOpen", "icon-xs") %>
-                                    <span>1. Reading</span>
-                                </button>
-                                <button type="button" class="nb-btn" onclick="filterDomain('Writing', this)">
-                                    <%= IconUtil.icon("PenTool", "icon-xs") %>
-                                    <span>2. Writing</span>
-                                </button>
-                                <button type="button" class="nb-btn" onclick="filterDomain('Counting', this)">
-                                    <%= IconUtil.icon("Hash", "icon-xs") %>
-                                    <span>3. Counting</span>
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- LIVE PREVIEW CARD CONTAINER (WITH RADAR SYNC) -->
-                    <div class="nb-card" style="margin-top: 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(45, 52, 54, 0.1); padding-bottom: 10px;">
+                    <div class="nb-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(45, 52, 54, 0.1); padding-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 32px; height: 32px; border-radius: 10px; background: #FFE4E6; border: 2px solid var(--border-dark); display: flex; align-items: center; justify-content: center; color: #E11D48;">
                                     <%= IconUtil.icon("Eye", "icon-xs") %>
@@ -576,16 +734,15 @@
                         <!-- 3 Mini Cards Grid -->
                         <div class="preview-grid">
                             <!-- Reading Card -->
-                            <div class="preview-card">
+                            <div class="preview-card" id="prevCard1" onclick="goToStep(1)">
                                 <div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                         <span class="nb-badge badge-yellow">
                                             <%= IconUtil.icon("BookOpen", "icon-xs") %>
                                             <span>READING</span>
                                         </span>
-                                        <span class="nb-badge badge-success">
-                                            <%= IconUtil.icon("Check", "icon-xs") %>
-                                            <span>CAPAI SASARAN</span>
+                                        <span class="nb-badge <%= readScaleVal >= 4 ? "badge-success" : "badge-warning" %>" id="prevReadingBadge">
+                                            <%= readScaleVal >= 4 ? "CAPAI SASARAN" : "PERLU BIMBINGAN" %>
                                         </span>
                                     </div>
                                     <h4 style="font-size: 0.85rem; font-weight: 900; margin-bottom: 4px;" id="prevReadingTitle">
@@ -602,16 +759,15 @@
                             </div>
 
                             <!-- Writing Card -->
-                            <div class="preview-card">
+                            <div class="preview-card locked" id="prevCard2" onclick="goToStep(2)">
                                 <div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                         <span class="nb-badge badge-coral">
                                             <%= IconUtil.icon("PenTool", "icon-xs") %>
                                             <span>WRITING</span>
                                         </span>
-                                        <span class="nb-badge badge-success">
-                                            <%= IconUtil.icon("Check", "icon-xs") %>
-                                            <span>CAPAI SASARAN</span>
+                                        <span class="nb-badge <%= writeScaleVal >= 4 ? "badge-success" : "badge-warning" %>" id="prevWritingBadge">
+                                            <%= writeScaleVal >= 4 ? "CAPAI SASARAN" : "PERLU BIMBINGAN" %>
                                         </span>
                                     </div>
                                     <h4 style="font-size: 0.85rem; font-weight: 900; margin-bottom: 4px;" id="prevWritingTitle">
@@ -628,16 +784,15 @@
                             </div>
 
                             <!-- Counting Card -->
-                            <div class="preview-card">
+                            <div class="preview-card locked" id="prevCard3" onclick="goToStep(3)">
                                 <div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                         <span class="nb-badge badge-mint">
                                             <%= IconUtil.icon("Hash", "icon-xs") %>
                                             <span>COUNTING</span>
                                         </span>
-                                        <span class="nb-badge badge-success">
-                                            <%= IconUtil.icon("Check", "icon-xs") %>
-                                            <span>CAPAI SASARAN</span>
+                                        <span class="nb-badge <%= countScaleVal >= 4 ? "badge-success" : "badge-warning" %>" id="prevCountingBadge">
+                                            <%= countScaleVal >= 4 ? "CAPAI SASARAN" : "PERLU BIMBINGAN" %>
                                         </span>
                                     </div>
                                     <h4 style="font-size: 0.85rem; font-weight: 900; margin-bottom: 4px;" id="prevCountingTitle">
@@ -655,9 +810,48 @@
                         </div>
                     </div>
 
-                    <!-- TERAS 1: READING DOMAIN CONTAINER -->
-                    <div class="nb-card domain-section" id="sectionReading" style="margin-top: 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <!-- ==========================================================================
+                         4-STEP WIZARD BAR (DI ATAS PANEL TERAS + TERKUNCI HINGGA TEKAN SETERUSNYA)
+                         ========================================================================== -->
+                    <div class="step-wizard-grid" id="stepWizardBar">
+                        <button type="button" class="step-pill-btn active" id="stepTab1" onclick="goToStep(1)">
+                            <span class="step-num-circle" id="stepCircle1">1</span>
+                            <div>
+                                <div class="step-pill-title">Reading</div>
+                                <div class="step-pill-sub">Langkah 1: Kemahiran Membaca</div>
+                            </div>
+                        </button>
+
+                        <button type="button" class="step-pill-btn locked" id="stepTab2" onclick="goToStep(2)">
+                            <span class="step-num-circle" id="stepCircle2">2</span>
+                            <div>
+                                <div class="step-pill-title">Writing</div>
+                                <div class="step-pill-sub">Langkah 2: Kemahiran Menulis</div>
+                            </div>
+                        </button>
+
+                        <button type="button" class="step-pill-btn locked" id="stepTab3" onclick="goToStep(3)">
+                            <span class="step-num-circle" id="stepCircle3">3</span>
+                            <div>
+                                <div class="step-pill-title">Counting</div>
+                                <div class="step-pill-sub">Langkah 3: Kemahiran Mengira</div>
+                            </div>
+                        </button>
+
+                        <button type="button" class="step-pill-btn locked" id="stepTab4" onclick="goToStep(4)">
+                            <span class="step-num-circle" id="stepCircle4">4</span>
+                            <div>
+                                <div class="step-pill-title">Cadangan</div>
+                                <div class="step-pill-sub">Langkah 4: Aktiviti di Rumah</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- ==========================================================================
+                         LANGKAH 1: TERAS 1 - READING
+                         ========================================================================== -->
+                    <div class="nb-card step-panel active" id="stepPanel1">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 38px; height: 38px; background: var(--yellow-accent); border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--border-dark); box-shadow: var(--shadow-sm);">
                                     <%= IconUtil.icon("BookOpen", "icon-sm") %>
@@ -680,14 +874,14 @@
                         <input type="text" name="reading_progressName" id="readingTopic" class="nb-input" value="<%= readTopicVal %>" oninput="updateLivePreview()">
 
                         <!-- Suggested Score Banner -->
-                        <div style="background: #FFFBEB; border: 2px solid #FCD34D; border-radius: 16px; padding: 12px 16px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="background: #FFFBEB; border: 2px solid #FCD34D; border-radius: 16px; padding: 12px 16px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <div style="width: 32px; height: 32px; background: #FFF; border: 2px solid #F59E0B; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; color: #B45309;" id="readingRatioBadge">
                                     4/5
                                 </div>
                                 <div>
-                                    <h5 style="font-size: 0.8rem; font-weight: 900; color: #78350F;">4 daripada 5 Kriteria Reading Telah Dikuasai</h5>
-                                    <p style="font-size: 0.7rem; color: #92400E;">Cadangan skala automatik: <strong>Skala 4 / 5</strong></p>
+                                    <h5 style="font-size: 0.8rem; font-weight: 900; color: #78350F;" id="readingRatioTitle">4 daripada 5 Kriteria Reading Telah Dikuasai</h5>
+                                    <p style="font-size: 0.7rem; color: #92400E;">Cadangan skala automatik: <strong id="readingSuggestedLbl">Skala 4 / 5</strong></p>
                                 </div>
                             </div>
                             <button type="button" class="nb-btn nb-btn-yellow" onclick="applySuggestedScale('reading')">
@@ -756,13 +950,13 @@
 
                         <!-- Rating Scale Selector (1-5) -->
                         <div class="scale-selector-container">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                                 <div>
                                     <label style="font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 5px;">
                                         <%= IconUtil.icon("Award", "icon-xs") %>
                                         <span>Skala Penilaian Perkembangan (Rating Scale 1 - 5)</span>
                                     </label>
-                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: <%= readScaleVal * 2 %>.0/10).</p>
+                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: <span id="lblReadingAxis"><%= readScaleVal * 2 %>.0</span>/10).</p>
                                 </div>
                                 <div style="display: flex; gap: 6px;">
                                     <span class="nb-badge" style="background:#FFF;">Skala <span id="lblReadingScale"><%= readScaleVal %></span> / 5</span>
@@ -782,19 +976,22 @@
                                 <div class="scale-btn <%= readScaleVal == 5 ? "active-yellow" : "" %>" onclick="selectScale('reading', 5, 'yellow', this)"><span class="num">5</span><span class="lbl">Cemerlang</span></div>
                             </div>
 
-                            <div style="background: var(--emerald-bg); border: 1px solid var(--emerald-border); border-radius: 12px; padding: 8px 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: #065F46;">
-                                <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                    <%= IconUtil.icon("CheckCircle", "icon-xs") %>
-                                    <span>Mencapai Penanda Aras Umur (Skala 4: Mahir (Proficient))</span>
+                            <div class="benchmark-box <%= readScaleVal >= 4 ? "ok" : "alert" %>" id="readingBenchmarkBox">
+                                <span id="readingBenchmarkText">
+                                    <%= readScaleVal >= 4 ? "Mencapai Penanda Aras Umur (Skala 4: Mahir (Proficient))" : "AMARAN JURANG PERKEMBANGAN: Skor semasa di bawah penanda aras umur." %>
                                 </span>
-                                <span class="nb-badge badge-success">Sasaran Tercapai</span>
+                                <span class="nb-badge <%= readScaleVal >= 4 ? "badge-success" : "badge-warning" %>" id="readingBenchmarkBadge">
+                                    <%= readScaleVal >= 4 ? "Sasaran Tercapai" : "Jurang -" + (4 - readScaleVal) + " Skala" %>
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- TERAS 2: WRITING DOMAIN CONTAINER -->
-                    <div class="nb-card domain-section" id="sectionWriting" style="margin-top: 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <!-- ==========================================================================
+                         LANGKAH 2: TERAS 2 - WRITING
+                         ========================================================================== -->
+                    <div class="nb-card step-panel" id="stepPanel2">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 38px; height: 38px; background: var(--coral-accent); color:#FFF; border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
                                     <%= IconUtil.icon("PenTool", "icon-sm") %>
@@ -817,14 +1014,14 @@
                         <input type="text" name="writing_progressName" id="writingTopic" class="nb-input" value="<%= writeTopicVal %>" oninput="updateLivePreview()">
 
                         <!-- Suggested Score Banner -->
-                        <div style="background: #FFF1F2; border: 2px solid #FDA4AF; border-radius: 16px; padding: 12px 16px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="background: #FFF1F2; border: 2px solid #FDA4AF; border-radius: 16px; padding: 12px 16px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <div style="width: 32px; height: 32px; background: #FFF; border: 2px solid #F43F5E; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; color: #BE185D;" id="writingRatioBadge">
                                     4/5
                                 </div>
                                 <div>
-                                    <h5 style="font-size: 0.8rem; font-weight: 900; color: #881337;">4 daripada 5 Kriteria Writing Telah Dikuasai</h5>
-                                    <p style="font-size: 0.7rem; color: #9F1239;">Cadangan skala automatik: <strong>Skala 4 / 5</strong></p>
+                                    <h5 style="font-size: 0.8rem; font-weight: 900; color: #881337;" id="writingRatioTitle">4 daripada 5 Kriteria Writing Telah Dikuasai</h5>
+                                    <p style="font-size: 0.7rem; color: #9F1239;">Cadangan skala automatik: <strong id="writingSuggestedLbl">Skala 4 / 5</strong></p>
                                 </div>
                             </div>
                             <button type="button" class="nb-btn nb-btn-coral" onclick="applySuggestedScale('writing')">
@@ -893,13 +1090,13 @@
 
                         <!-- Rating Scale Selector (1-5) -->
                         <div class="scale-selector-container">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                                 <div>
                                     <label style="font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 5px;">
                                         <%= IconUtil.icon("Award", "icon-xs") %>
                                         <span>Skala Penilaian Perkembangan (Rating Scale 1 - 5)</span>
                                     </label>
-                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: <%= writeScaleVal * 2 %>.0/10).</p>
+                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: <span id="lblWritingAxis"><%= writeScaleVal * 2 %>.0</span>/10).</p>
                                 </div>
                                 <div style="display: flex; gap: 6px;">
                                     <span class="nb-badge" style="background:#FFF;">Skala <span id="lblWritingScale"><%= writeScaleVal %></span> / 5</span>
@@ -919,19 +1116,22 @@
                                 <div class="scale-btn <%= writeScaleVal == 5 ? "active-coral" : "" %>" onclick="selectScale('writing', 5, 'coral', this)"><span class="num">5</span><span class="lbl">Cemerlang</span></div>
                             </div>
 
-                            <div style="background: var(--emerald-bg); border: 1px solid var(--emerald-border); border-radius: 12px; padding: 8px 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: #065F46;">
-                                <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                    <%= IconUtil.icon("CheckCircle", "icon-xs") %>
-                                    <span>Mencapai Penanda Aras Umur (Skala 4: Mahir (Proficient))</span>
+                            <div class="benchmark-box <%= writeScaleVal >= 4 ? "ok" : "alert" %>" id="writingBenchmarkBox">
+                                <span id="writingBenchmarkText">
+                                    <%= writeScaleVal >= 4 ? "Mencapai Penanda Aras Umur (Skala 4: Mahir (Proficient))" : "AMARAN JURANG PERKEMBANGAN: Skor semasa di bawah penanda aras umur." %>
                                 </span>
-                                <span class="nb-badge badge-success">Sasaran Tercapai</span>
+                                <span class="nb-badge <%= writeScaleVal >= 4 ? "badge-success" : "badge-warning" %>" id="writingBenchmarkBadge">
+                                    <%= writeScaleVal >= 4 ? "Sasaran Tercapai" : "Jurang -" + (4 - writeScaleVal) + " Skala" %>
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- TERAS 3: COUNTING DOMAIN CONTAINER -->
-                    <div class="nb-card domain-section" id="sectionCounting" style="margin-top: 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <!-- ==========================================================================
+                         LANGKAH 3: TERAS 3 - COUNTING
+                         ========================================================================== -->
+                    <div class="nb-card step-panel" id="stepPanel3">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 38px; height: 38px; background: var(--mint-accent); border: 2px solid var(--border-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--border-dark); box-shadow: var(--shadow-sm);">
                                     <%= IconUtil.icon("Hash", "icon-sm") %>
@@ -954,14 +1154,14 @@
                         <input type="text" name="counting_progressName" id="countingTopic" class="nb-input" value="<%= countTopicVal %>" oninput="updateLivePreview()">
 
                         <!-- Suggested Score Banner -->
-                        <div style="background: #ECFDF5; border: 2px solid #6EE7B7; border-radius: 16px; padding: 12px 16px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="background: #ECFDF5; border: 2px solid #6EE7B7; border-radius: 16px; padding: 12px 16px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <div style="width: 32px; height: 32px; background: #FFF; border: 2px solid #10B981; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; color: #047857;" id="countingRatioBadge">
                                     4/5
                                 </div>
                                 <div>
-                                    <h5 style="font-size: 0.8rem; font-weight: 900; color: #064E3B;">4 daripada 5 Kriteria Counting Telah Dikuasai</h5>
-                                    <p style="font-size: 0.7rem; color: #065F46;">Cadangan skala automatik: <strong>Skala 4 / 5</strong></p>
+                                    <h5 style="font-size: 0.8rem; font-weight: 900; color: #064E3B;" id="countingRatioTitle">4 daripada 5 Kriteria Counting Telah Dikuasai</h5>
+                                    <p style="font-size: 0.7rem; color: #065F46;">Cadangan skala automatik: <strong id="countingSuggestedLbl">Skala 4 / 5</strong></p>
                                 </div>
                             </div>
                             <button type="button" class="nb-btn nb-btn-mint" onclick="applySuggestedScale('counting')">
@@ -1030,13 +1230,13 @@
 
                         <!-- Rating Scale Selector (1-5) -->
                         <div class="scale-selector-container">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                                 <div>
                                     <label style="font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 5px;">
                                         <%= IconUtil.icon("Award", "icon-xs") %>
                                         <span>Skala Penilaian Perkembangan (Rating Scale 1 - 5)</span>
                                     </label>
-                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: <%= countScaleVal * 2 %>.0/10).</p>
+                                    <p style="font-size: 0.68rem; color: #64748B;">Diselaraskan terus ke graf Radar Chart (Paksi: <span id="lblCountingAxis"><%= countScaleVal * 2 %>.0</span>/10).</p>
                                 </div>
                                 <div style="display: flex; gap: 6px;">
                                     <span class="nb-badge" style="background:#FFF;">Skala <span id="lblCountingScale"><%= countScaleVal %></span> / 5</span>
@@ -1056,41 +1256,64 @@
                                 <div class="scale-btn <%= countScaleVal == 5 ? "active-mint" : "" %>" onclick="selectScale('counting', 5, 'mint', this)"><span class="num">5</span><span class="lbl">Cemerlang</span></div>
                             </div>
 
-                            <div style="background: var(--emerald-bg); border: 1px solid var(--emerald-border); border-radius: 12px; padding: 8px 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: #065F46;">
-                                <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                    <%= IconUtil.icon("CheckCircle", "icon-xs") %>
-                                    <span>Mencapai Penanda Aras Umur (Skala 4: Mahir (Proficient))</span>
+                            <div class="benchmark-box <%= countScaleVal >= 4 ? "ok" : "alert" %>" id="countingBenchmarkBox">
+                                <span id="countingBenchmarkText">
+                                    <%= countScaleVal >= 4 ? "Mencapai Penanda Aras Umur (Skala 4: Mahir (Proficient))" : "AMARAN JURANG PERKEMBANGAN: Skor semasa di bawah penanda aras umur." %>
                                 </span>
-                                <span class="nb-badge badge-success">Sasaran Tercapai</span>
+                                <span class="nb-badge <%= countScaleVal >= 4 ? "badge-success" : "badge-warning" %>" id="countingBenchmarkBadge">
+                                    <%= countScaleVal >= 4 ? "Sasaran Tercapai" : "Jurang -" + (4 - countScaleVal) + " Skala" %>
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- HOME RECOMMENDATION TEXTAREA CARD -->
-                    <div class="nb-card" style="margin-top: 16px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <div style="width: 32px; height: 32px; border-radius: 10px; background: #EEF2FF; border: 2px solid var(--border-dark); display: flex; align-items: center; justify-content: center; color: #4338CA;">
-                                <%= IconUtil.icon("Home", "icon-xs") %>
+                    <!-- ==========================================================================
+                         LANGKAH 4: CADANGAN AKTIVITI DI RUMAH (UNTUK IBU BAPA)
+                         ========================================================================== -->
+                    <div class="nb-card step-panel" id="stepPanel4">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <div style="width: 36px; height: 36px; border-radius: 12px; background: #EEF2FF; border: 2px solid var(--border-dark); display: flex; align-items: center; justify-content: center; color: #4338CA; box-shadow: var(--shadow-sm);">
+                                <%= IconUtil.icon("Home", "icon-sm") %>
                             </div>
                             <div>
-                                <h3 style="font-size: 0.95rem; font-weight: 900;">Cadangan Perkongsian Aktiviti di Rumah (Untuk Ibu Bapa)</h3>
-                                <p style="font-size: 0.7rem; color: #64748B;">Saranan praktikal untuk ibu bapa terus menyokong perkembangan murid di rumah secara santai.</p>
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                    <span class="nb-badge badge-purple">LANGKAH 4</span>
+                                    <h3 style="font-size: 1rem; font-weight: 900;">Cadangan Perkongsian Aktiviti di Rumah (Untuk Ibu Bapa)</h3>
+                                </div>
+                                <p style="font-size: 0.72rem; color: #64748B;">Saranan praktikal untuk ibu bapa terus menyokong perkembangan murid di rumah secara santai.</p>
                             </div>
                         </div>
-                        <textarea name="homeRecommendation" class="nb-textarea" rows="3" placeholder="Contoh: Ibu bapa digalakkan meluangkan masa 10 minit membaca buku cerita bergambar bersama anak, mengira objek mainan semasa mengemas, dan memberi anak peluang melukis bebas..."><%= isEditMode ? savedHomeRec : "" %></textarea>
+                        <textarea name="homeRecommendation" class="nb-textarea" rows="4" placeholder="Contoh: Ibu bapa digalakkan meluangkan masa 10 minit membaca buku cerita bergambar bersama anak, mengira objek mainan semasa mengemas, dan memberi anak peluang melukis bebas..."><%= isEditMode ? savedHomeRec : "" %></textarea>
                     </div>
 
-                    <!-- BOTTOM ACTION SUBMIT BAR -->
-                    <div class="nb-card" style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                        <div style="font-size: 0.75rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 8px;">
-                            <span style="color: var(--purple-accent); display: inline-flex; align-items: center;">
+                    <!-- ==========================================================================
+                         BOTTOM STEP NAVIGATION & SUBMIT BAR
+                         ========================================================================== -->
+                    <div class="nb-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="font-size: 0.75rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 8px; max-width: 560px;">
+                            <span id="bottomStatusIcon" style="color: var(--purple-accent); display: inline-flex; align-items: center; flex-shrink: 0;">
                                 <%= IconUtil.icon("Info", "icon-sm") %>
                             </span>
-                            <span>Semua skor mencapai penanda aras umur (Skala 4: Mahir (Proficient)). Data akan terus dikemas kini ke Radar Chart.</span>
+                            <span id="bottomStatusText">Semua skor mencapai penanda aras umur (Skala 4: Mahir (Proficient)). Data akan terus dikemas kini ke Radar Chart.</span>
                         </div>
-                        <div style="display: flex; gap: 12px;">
-                            <a href="${pageContext.request.contextPath}/ProgressServlet?studentId=${initialStudentId}" class="nb-btn">Batal</a>
-                            <button type="submit" class="nb-btn nb-btn-yellow" style="padding: 10px 24px;">
+
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <button type="button" class="nb-btn" id="btnPrevStep" onclick="prevStep()" style="display: none;">
+                                <%= IconUtil.icon("ArrowLeft", "icon-xs") %>
+                                <span>Sebelumnya</span>
+                            </button>
+
+                            <a href="${pageContext.request.contextPath}/ProgressServlet?studentId=${initialStudentId}" class="nb-btn" id="btnCancelForm">
+                                Batal
+                            </a>
+
+
+                            <button type="button" class="nb-btn nb-btn-yellow" id="btnNextStep" onclick="nextStep()" style="padding: 9px 22px;">
+                                <span id="btnNextLabel">Seterusnya: Writing</span>
+                                <%= IconUtil.icon("ArrowRight", "icon-xs") %>
+                            </button>
+
+                            <button type="submit" class="nb-btn nb-btn-yellow" id="btnFinalSubmit" style="display: none; padding: 10px 24px;">
                                 <%= IconUtil.icon("Save", "icon-xs") %>
                                 <span><%= isEditMode ? "Kemas Kini Rekod Pentaksiran" : "Simpan Semua Rekod Pentaksiran (3 Teras)" %></span>
                             </button>
@@ -1102,14 +1325,17 @@
     </main>
 </div>
 
-<!-- Template SVG tersembunyi untuk kriteria baharu yang ditambah melalui JS -->
-<template id="tplCheckIcon"><%= IconUtil.icon("Check", "icon-xs") %></template>
-<template id="tplTrashIcon"><%= IconUtil.icon("Trash2", "icon-xs") %></template>
+<!-- Bekas ikon SVG tersembunyi untuk kriteria baharu yang ditambah melalui JS -->
+<div id="tplCheckIcon" style="display: none;"><%= IconUtil.icon("Check", "icon-xs") %></div>
+<div id="tplTrashIcon" style="display: none;"><%= IconUtil.icon("Trash2", "icon-xs") %></div>
 
-<!-- JAVASCRIPT LOGIC FOR DYNAMIC INTERACTIONS -->
+<!-- JAVASCRIPT LOGIC FOR STEP WIZARD & DYNAMIC INTERACTIONS -->
 <script>
     const statusTextMap = { 1: "NOT STARTED", 2: "EMERGING", 3: "DEVELOPING", 4: "PROFICIENT", 5: "MASTERED" };
+    const stepNextNames = { 1: "Seterusnya: Writing", 2: "Seterusnya: Counting", 3: "Seterusnya: Cadangan" };
     const allStudentOptions = [];
+    let currentStep = 1;
+    let maxUnlockedStep = <%= isEditMode ? 4 : 1 %>;
 
     document.addEventListener("DOMContentLoaded", function () {
         const studentSelect = document.getElementById("studentSelect");
@@ -1126,7 +1352,93 @@
             });
             filterStudentsByClass(true);
         }
+        updateLivePreview();
+        goToStep(1);
     });
+
+    function goToStep(stepNum) {
+        // Sekat akses jika langkah belum dibuka melalui butang "Seterusnya"
+        if (stepNum > maxUnlockedStep) {
+            const btnNext = document.getElementById("btnNextStep");
+            if (btnNext) {
+                btnNext.style.transform = "scale(1.05)";
+                setTimeout(() => { btnNext.style.transform = ""; }, 180);
+            }
+            return;
+        }
+
+        currentStep = stepNum;
+
+        for (let i = 1; i <= 4; i++) {
+            const panel = document.getElementById("stepPanel" + i);
+            const tab = document.getElementById("stepTab" + i);
+            const circle = document.getElementById("stepCircle" + i);
+            const prevCard = document.getElementById("prevCard" + i);
+            const isLocked = i > maxUnlockedStep;
+
+            if (panel) panel.classList.toggle("active", i === stepNum);
+            if (prevCard) prevCard.classList.toggle("locked", isLocked);
+
+            if (tab) {
+                tab.classList.remove("active", "completed", "locked");
+                if (isLocked) {
+                    tab.classList.add("locked");
+                    tab.title = "Sila tekan butang 'Seterusnya' untuk membuka langkah ini";
+                    if (circle) circle.innerText = i;
+                } else if (i === stepNum) {
+                    tab.classList.add("active");
+                    tab.title = "";
+                    if (circle) circle.innerText = i;
+                } else if (i < maxUnlockedStep) {
+                    tab.classList.add("completed");
+                    tab.title = "";
+                    if (circle) circle.innerHTML = "&#10003;";
+                } else {
+                    tab.title = "";
+                    if (circle) circle.innerText = i;
+                }
+            }
+        }
+
+        const btnPrev = document.getElementById("btnPrevStep");
+        const btnCancel = document.getElementById("btnCancelForm");
+        const btnSaveDirect = document.getElementById("btnSaveDirect");
+        const btnNext = document.getElementById("btnNextStep");
+        const btnFinal = document.getElementById("btnFinalSubmit");
+
+        if (btnPrev) btnPrev.style.display = (stepNum > 1) ? "inline-flex" : "none";
+        if (btnCancel) btnCancel.style.display = (stepNum === 1) ? "inline-flex" : "none";
+
+        if (stepNum < 4) {
+            if (btnSaveDirect) btnSaveDirect.style.display = "inline-flex";
+            if (btnNext) {
+                btnNext.style.display = "inline-flex";
+                document.getElementById("btnNextLabel").innerText = stepNextNames[stepNum];
+            }
+            if (btnFinal) btnFinal.style.display = "none";
+        } else {
+            if (btnSaveDirect) btnSaveDirect.style.display = "none";
+            if (btnNext) btnNext.style.display = "none";
+            if (btnFinal) btnFinal.style.display = "inline-flex";
+        }
+    }
+
+    function nextStep() {
+        if (currentStep < 4) {
+            if (currentStep + 1 > maxUnlockedStep) {
+                maxUnlockedStep = currentStep + 1;
+            }
+            goToStep(currentStep + 1);
+            document.getElementById("stepWizardBar").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    }
+
+    function prevStep() {
+        if (currentStep > 1) {
+            goToStep(currentStep - 1);
+            document.getElementById("stepWizardBar").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    }
 
     function filterStudentsByClass(preserveInitial) {
         const selectedClass = document.getElementById("classSelect").value;
@@ -1176,12 +1488,15 @@
             "SASARAN UMUR " + age + " TAHUN: SKALA 4: MAHIR (PROFICIENT)";
         const prevAge = document.getElementById("lblPreviewAge");
         if (prevAge) prevAge.innerText = age + " tahun";
+
+        updateLivePreview();
     }
 
     function selectScale(domain, val, colorTheme, btnElem) {
         document.getElementById(domain + '_scale').value = val;
         document.getElementById('lbl' + capitalize(domain) + 'Scale').innerText = val;
         document.getElementById('lbl' + capitalize(domain) + 'Status').innerText = statusTextMap[val];
+        document.getElementById('lbl' + capitalize(domain) + 'Axis').innerText = (val * 2) + '.0';
 
         const parent = btnElem.closest('.scale-grid');
         parent.querySelectorAll('.scale-btn').forEach(b => {
@@ -1251,63 +1566,106 @@
         updateCriteriaCount(domain);
     }
 
+    function getSuggestedScaleValue(domain) {
+        const container = document.getElementById(domain + 'CriteriaList');
+        const total = container.querySelectorAll('.checklist-item').length;
+        const colorClass = 'checked-' + (domain === 'reading' ? 'yellow' : domain === 'writing' ? 'coral' : 'mint');
+        const checked = container.querySelectorAll('.' + colorClass).length;
+
+        const ratio = checked / (total || 1);
+        if (ratio >= 0.9) return 5;
+        if (ratio >= 0.7) return 4;
+        if (ratio >= 0.5) return 3;
+        if (ratio >= 0.25) return 2;
+        return 1;
+    }
+
     function updateCriteriaCount(domain) {
         const container = document.getElementById(domain + 'CriteriaList');
         const total = container.querySelectorAll('.checklist-item').length;
         const colorClass = 'checked-' + (domain === 'reading' ? 'yellow' : domain === 'writing' ? 'coral' : 'mint');
         const checked = container.querySelectorAll('.' + colorClass).length;
+        const suggested = getSuggestedScaleValue(domain);
 
         document.getElementById(domain + 'RatioBadge').innerText = checked + '/' + total;
+        document.getElementById(domain + 'RatioTitle').innerText = checked + ' daripada ' + total + ' Kriteria ' + capitalize(domain) + ' Telah Dikuasai';
+        document.getElementById(domain + 'SuggestedLbl').innerText = 'Skala ' + suggested + ' / 5';
         document.getElementById('prev' + capitalize(domain) + 'Count').innerText = checked + '/' + total;
     }
 
     function applySuggestedScale(domain) {
-        const container = document.getElementById(domain + 'CriteriaList');
-        const total = container.querySelectorAll('.checklist-item').length;
-        const colorClass = 'checked-' + (domain === 'reading' ? 'yellow' : domain === 'writing' ? 'coral' : 'mint');
-        const checked = container.querySelectorAll('.' + colorClass).length;
-        
-        const ratio = checked / (total || 1);
-        let suggested = 4;
-        if (ratio >= 0.9) suggested = 5;
-        else if (ratio >= 0.7) suggested = 4;
-        else if (ratio >= 0.5) suggested = 3;
-        else if (ratio >= 0.25) suggested = 2;
-        else suggested = 1;
-
+        const suggested = getSuggestedScaleValue(domain);
         const colorTheme = domain === 'reading' ? 'yellow' : domain === 'writing' ? 'coral' : 'mint';
-        const targetBtn = document.querySelectorAll('#section' + capitalize(domain) + ' .scale-btn')[suggested - 1];
+        const targetBtn = document.querySelectorAll('#stepPanel' + (domain === 'reading' ? 1 : domain === 'writing' ? 2 : 3) + ' .scale-btn')[suggested - 1];
         if (targetBtn) {
             selectScale(domain, suggested, colorTheme, targetBtn);
         }
     }
 
-    function filterDomain(domain, btnElem) {
-        document.getElementById('activeDomainFilter').value = domain;
-        
-        const btnGroup = btnElem.parentElement;
-        btnGroup.querySelectorAll('.nb-btn').forEach(b => b.classList.remove('nb-btn-dark'));
-        btnElem.classList.add('nb-btn-dark');
+    function updateLivePreview() {
+        const studentSelect = document.getElementById("studentSelect");
+        let age = "5";
+        if (studentSelect && studentSelect.selectedIndex >= 0) {
+            age = studentSelect.options[studentSelect.selectedIndex].getAttribute("data-age") || "5";
+        }
 
-        const sections = document.querySelectorAll('.domain-section');
-        sections.forEach(sec => {
-            if (domain === 'All') {
-                sec.style.display = 'block';
+        let hasGap = false;
+
+        ['reading', 'writing', 'counting'].forEach(dom => {
+            const cap = capitalize(dom);
+            const topic = document.getElementById(dom + 'Topic').value;
+            const scale = parseInt(document.getElementById(dom + '_scale').value || "4", 10);
+
+            document.getElementById('prev' + cap + 'Title').innerText = topic || ('Pentaksiran ' + cap);
+            document.getElementById('prev' + cap + 'Scale').innerText = 'Skala ' + scale + '/5';
+            document.getElementById('prev' + cap + 'Radar').innerText = (scale * 2) + '/10';
+
+            const prevBadge = document.getElementById('prev' + cap + 'Badge');
+            const benchBox = document.getElementById(dom + 'BenchmarkBox');
+            const benchText = document.getElementById(dom + 'BenchmarkText');
+            const benchBadge = document.getElementById(dom + 'BenchmarkBadge');
+
+            if (scale >= 4) {
+                if (prevBadge) {
+                    prevBadge.className = 'nb-badge badge-success';
+                    prevBadge.innerText = 'CAPAI SASARAN';
+                }
+                if (benchBox) benchBox.className = 'benchmark-box ok';
+                if (benchText) benchText.innerText = 'Mencapai Penanda Aras Umur (Skala 4: Mahir (Proficient))';
+                if (benchBadge) {
+                    benchBadge.className = 'nb-badge badge-success';
+                    benchBadge.innerText = 'Sasaran Tercapai';
+                }
             } else {
-                sec.style.display = sec.id === ('section' + domain) ? 'block' : 'none';
+                hasGap = true;
+                const gap = 4 - scale;
+                if (prevBadge) {
+                    prevBadge.className = 'nb-badge badge-warning';
+                    prevBadge.innerText = 'PERLU BIMBINGAN';
+                }
+                if (benchBox) benchBox.className = 'benchmark-box alert';
+                if (benchText) {
+                    benchText.innerHTML = '<strong>AMARAN JURANG PERKEMBANGAN (ALERT GURU &amp; IBU BAPA)</strong><br>' +
+                        '<span style="font-weight:600;">Murid berumur ' + age + ' tahun disasarkan mencapai Skala 4: Mahir (Proficient). Skor semasa (Skala ' + scale + ') memerlukan bimbingan intervensi. Notifikasi amaran akan dihantar serentak ke konsol Guru dan portal Ibu Bapa.</span>';
+                }
+                if (benchBadge) {
+                    benchBadge.className = 'nb-badge badge-warning';
+                    benchBadge.innerText = 'Jurang -' + gap + ' Skala';
+                }
             }
         });
-    }
 
-    function updateLivePreview() {
-        ['reading', 'writing', 'counting'].forEach(dom => {
-            const topic = document.getElementById(dom + 'Topic').value;
-            const scale = document.getElementById(dom + '_scale').value;
-
-            document.getElementById('prev' + capitalize(dom) + 'Title').innerText = topic || ('Pentaksiran ' + capitalize(dom));
-            document.getElementById('prev' + capitalize(dom) + 'Scale').innerText = 'Skala ' + scale + '/5';
-            document.getElementById('prev' + capitalize(dom) + 'Radar').innerText = (scale * 2) + '/10';
-        });
+        const bottomText = document.getElementById('bottomStatusText');
+        const bottomIcon = document.getElementById('bottomStatusIcon');
+        if (bottomText) {
+            if (hasGap) {
+                bottomText.innerHTML = '<strong style="color:#BE123C;">Peringatan:</strong> Terdapat skor di bawah sasaran umur ' + age + ' tahun. Notifikasi intervensi akan dihantar serentak kepada Guru dan Ibu Bapa.';
+                if (bottomIcon) bottomIcon.style.color = '#E11D48';
+            } else {
+                bottomText.innerText = 'Semua skor mencapai penanda aras umur (Skala 4: Mahir (Proficient)). Data akan terus dikemas kini ke Radar Chart.';
+                if (bottomIcon) bottomIcon.style.color = 'var(--purple-accent)';
+            }
+        }
     }
 
     function capitalize(str) {

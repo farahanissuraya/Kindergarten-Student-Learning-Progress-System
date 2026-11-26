@@ -46,7 +46,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Keedflix Centre - Weekly News & Bulletins</title>
+    <title>Keedflix Centre - News & Bulletins</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/news.css">
 
@@ -79,7 +79,7 @@
                                 <div style="height: 24px; width: 2px; background: #CBD5E1;"></div>
                                 <div>
                                     <div style="display: flex; gap: 8px; margin-bottom: 4px;">
-                                        <span class="badge badge-academic">Keedflix Weekly Bulletin</span>
+                                        <span class="badge badge-academic">Keedflix Bulletin</span>
                                         <span id="previewCatBadge" class="badge badge-academic">Academic Focus</span>
                                     </div>
                                     <h1 style="font-size: 1.5rem; font-weight: 900; margin: 0;"><%= (editNews != null) ? "Kemaskini Buletin Mingguan" : "Cipta Buletin Mingguan Baharu" %></h1>
@@ -175,10 +175,6 @@
                                         <div class="cat-select-card <%= "Holiday".equals(currentCat) ? "selected" : "" %>" onclick="setCategory('Holiday', this)">
                                             <%= IconUtil.icon("Palmtree", "icon-md") %>
                                             <span style="font-size: 0.8rem;">Holiday</span>
-                                        </div>
-                                        <div class="cat-select-card <%= "Nutrition".equals(currentCat) ? "selected" : "" %>" onclick="setCategory('Nutrition', this)">
-                                            <%= IconUtil.icon("Apple", "icon-md") %>
-                                            <span style="font-size: 0.8rem;">Nutrition</span>
                                         </div>
                                     </div>
                                 </div>
@@ -319,7 +315,7 @@
                                     <%= IconUtil.icon("Newspaper", "icon-lg") %>
                                 </div>
                                 <div>
-                                    <h2 style="font-size: 1.6rem; font-weight: 900; margin: 0 0 4px 0;">Keedflix Weekly News & Bulletins</h2>
+                                    <h2 style="font-size: 1.6rem; font-weight: 900; margin: 0 0 4px 0;">Keedflix News & Bulletins</h2>
                                     <p style="font-size: 0.85rem; font-weight: 600; color: #64748B; margin: 0;">Curriculum updates, reading & counting activities. (Role: <strong><%= userRole %></strong>)</p>
                                 </div>
                             </div>
@@ -337,7 +333,7 @@
                         <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                             <span style="font-weight: 900; font-size: 0.85rem; margin-right: 4px;">Filter Category:</span>
                             <% 
-                                String[] cats = {"All", "Academic Focus", "Announcement", "Event", "Holiday", "Nutrition"};
+                                String[] cats = {"All", "Academic Focus", "Announcement", "Event", "Holiday"};
                                 for (String cat : cats) {
                                     boolean isActive = selectedCategory.equals(cat);
                             %>
@@ -359,7 +355,6 @@
                                         if ("Announcement".equalsIgnoreCase(item.getNewsCategory())) badgeClass = "badge-announcement";
                                         else if ("Event".equalsIgnoreCase(item.getNewsCategory())) badgeClass = "badge-event";
                                         else if ("Holiday".equalsIgnoreCase(item.getNewsCategory())) badgeClass = "badge-holiday";
-                                        else if ("Nutrition".equalsIgnoreCase(item.getNewsCategory())) badgeClass = "badge-nutrition";
                             %>
                                 <div class="neo-card news-card-clickable" 
                                      onclick="openDetailModal('<%= item.getNewsTitle().replace("'", "\\'").replace("\"", "\\\"") %>', 
@@ -476,9 +471,7 @@
                 catBadge.classList.add('badge-event');
             } else if (category.toLowerCase() === 'holiday') {
                 catBadge.classList.add('badge-holiday');
-            } else if (category.toLowerCase() === 'nutrition') {
-                catBadge.classList.add('badge-nutrition');
-            } else {
+            }  else {
                 catBadge.classList.add('badge-academic');
             }
 

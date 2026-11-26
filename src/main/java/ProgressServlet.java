@@ -192,7 +192,7 @@ public class ProgressServlet extends HttpServlet {
 
                 String dateStr = request.getParameter("progressDate");
                 if (dateStr == null || dateStr.trim().isEmpty()) {
-                    dateStr = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+                    dateStr = new java.text.SimpleDateFormat("dd-MM-yyyy").format(new java.util.Date());
                 }
                 lp.setProgressDate(dateStr);
                 lp.setTeacherID(teacherId);
@@ -215,11 +215,18 @@ public class ProgressServlet extends HttpServlet {
 
                 if (reportDate != null && !reportDate.trim().isEmpty()) {
                     String cleanDate = reportDate.trim();
+                    if (cleanDate.length() >= 10) {
+                        cleanDate = cleanDate.substring(0, 10);
+                    }
+                    String datePattern = (cleanDate.length() == 10 && cleanDate.charAt(4) == '-')
+                                       ? "YYYY-MM-DD" : "DD-MM-YYYY";
+
                     try (Connection conn = DatabaseConnection.getConnection()) {
                         if (conn != null) {
                             String sql = "DELETE FROM LEARNINGPROGRESS " +
                                          "WHERE studentID = ? " +
-                                         "AND (TO_CHAR(progressDate, 'YYYY-MM-DD') = ? OR TRUNC(progressDate) = TO_DATE(?, 'YYYY-MM-DD'))";
+                                         "AND (TO_CHAR(progressDate, '" + datePattern + "') = ? " +
+                                         "OR TRUNC(progressDate) = TO_DATE(?, '" + datePattern + "'))";
                             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                                 ps.setInt(1, studentId);
                                 ps.setString(2, cleanDate);

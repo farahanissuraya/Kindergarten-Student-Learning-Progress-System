@@ -26,10 +26,10 @@ public class LearningProgressDAO {
         String sql;
         if (progress.getProgressID() > 0) {
             sql = "INSERT INTO LEARNINGPROGRESS (progressID, studentID, progressName, progressDate, progressPercentage, progressStatus, teacherID, domainName, notes, ratingScale, assessorName, homeRecommendation) " +
-                  "VALUES (?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?, ?)";
+                  "VALUES (?, ?, ?, TO_DATE(?, 'dd-MM-yyyy'), ?, ?, ?, ?, ?, ?, ?, ?)";
         } else {
             sql = "INSERT INTO LEARNINGPROGRESS (progressID, studentID, progressName, progressDate, progressPercentage, progressStatus, teacherID, domainName, notes, ratingScale, assessorName, homeRecommendation) " +
-                  "VALUES ((SELECT NVL(MAX(progressID), 100) + 1 FROM LEARNINGPROGRESS), ?, ?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?, ?)";
+                  "VALUES ((SELECT NVL(MAX(progressID), 100) + 1 FROM LEARNINGPROGRESS), ?, ?, TO_DATE(?, 'dd-MM-yyyy'), ?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -44,7 +44,7 @@ public class LearningProgressDAO {
 
             String dateStr = (progress.getProgressDate() != null && !progress.getProgressDate().trim().isEmpty())
                              ? progress.getProgressDate()
-                             : new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+                             : new java.text.SimpleDateFormat("dd-MM-yyyy").format(new java.util.Date());
             pstmt.setString(idx++, dateStr);
 
             pstmt.setDouble(idx++, progress.getProgressPercentage());
@@ -70,7 +70,7 @@ public class LearningProgressDAO {
     public List<LearningProgress> getProgressByStudentId(int studentID) throws Exception {
         List<LearningProgress> list = new ArrayList<>();
         String sql = "SELECT progressID, studentID, progressName, " +
-                     "TO_CHAR(progressDate, 'YYYY-MM-DD') AS formattedDate, " +
+                     "TO_CHAR(progressDate, 'dd-MM-yyyy') AS formattedDate, " +
                      "progressPercentage, progressStatus, teacherID, " +
                      "NVL(domainName, 'General') AS domainName, notes, " +
                      "NVL(ratingScale, 5) AS ratingScale, assessorName, homeRecommendation " +
@@ -116,7 +116,7 @@ public class LearningProgressDAO {
     }
 
     public boolean updateProgress(LearningProgress progress) throws Exception {
-        String sql = "UPDATE LEARNINGPROGRESS SET domainName = ?, progressName = ?, progressDate = TO_DATE(?, 'YYYY-MM-DD'), " +
+        String sql = "UPDATE LEARNINGPROGRESS SET domainName = ?, progressName = ?, progressDate = TO_DATE(?, 'dd-MM-yyyy'), " +
                      "progressPercentage = ?, progressStatus = ?, teacherID = ?, notes = ?, ratingScale = ?, homeRecommendation = ? " +
                      "WHERE progressID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -279,7 +279,7 @@ public class LearningProgressDAO {
     }
 
     public String getLatestReportDate(int studentID) {
-        String sql = "SELECT TO_CHAR(MAX(progressDate), 'YYYY-MM-DD') AS latestDate " +
+        String sql = "SELECT TO_CHAR(MAX(progressDate), 'dd-MM-yyyy') AS latestDate " +
                      "FROM LEARNINGPROGRESS WHERE studentID = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -299,12 +299,12 @@ public class LearningProgressDAO {
     public List<LearningProgress> getRecordsByStudentAndDate(int studentID, String reportDate) {
         List<LearningProgress> list = new ArrayList<>();
         String sql = "SELECT progressID, studentID, progressName, " +
-                     "TO_CHAR(progressDate, 'YYYY-MM-DD') AS formattedDate, " +
+                     "TO_CHAR(progressDate, 'dd-MM-yyyy') AS formattedDate, " +
                      "progressPercentage, progressStatus, teacherID, " +
                      "NVL(domainName, 'Reading') AS domainName, notes, " +
                      "NVL(ratingScale, 4) AS ratingScale, assessorName, homeRecommendation " +
                      "FROM LEARNINGPROGRESS " +
-                     "WHERE studentID = ? AND TO_CHAR(progressDate, 'YYYY-MM-DD') = ? " +
+                     "WHERE studentID = ? AND TO_CHAR(progressDate, 'dd-MM-yyyy') = ? " +
                      "ORDER BY CASE UPPER(domainName) " +
                      "WHEN 'READING' THEN 1 WHEN 'WRITING' THEN 2 WHEN 'COUNTING' THEN 3 ELSE 4 END, progressID ASC";
 

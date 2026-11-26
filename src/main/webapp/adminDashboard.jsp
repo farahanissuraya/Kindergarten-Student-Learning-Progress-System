@@ -145,10 +145,10 @@
                                 <p class="metric-footer">Reading, Writing &amp; Counting Cohorts</p>
                             </div>
 
-                            <!-- Card 3: Weekly Bulletins -->
+                            <!-- Card 3:  Bulletins -->
                             <div class="metric-card">
                                 <div class="metric-header">
-                                    <span class="metric-title">Weekly Bulletins</span>
+                                    <span class="metric-title"> Bulletins</span>
                                     <div class="metric-icon-box bg-rose-100">
                                         <%= IconUtil.icon("Newspaper", "icon-sm") %>
                                     </div>

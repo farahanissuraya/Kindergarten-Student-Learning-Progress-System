@@ -118,13 +118,6 @@
     stroke: #2D3436;
 }
 
-/* Footer & Sign Out */
-.sidebar-footer {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
 
 .footer-divider {
     border: none;

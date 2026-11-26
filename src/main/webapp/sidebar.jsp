@@ -128,7 +128,7 @@
                 <span>Student Directory</span>
             </a>
         
-            <!-- Weekly News -->
+            <!--  News -->
             <a href="${pageContext.request.contextPath}/NewsServlet" 
                class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
                 <%= IconUtil.icon("Newspaper", "icon-sm") %>
@@ -150,7 +150,7 @@
                 <span>Learning Progress</span>
             </a>
         
-            <!-- Weekly News -->
+            <!--  News -->
             <a href="${pageContext.request.contextPath}/NewsServlet" 
                class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
                 <%= IconUtil.icon("Newspaper", "icon-sm") %>
@@ -179,7 +179,7 @@
                 <span>Learning Progress</span>
             </a>
         
-            <!-- Weekly News -->
+            <!--  News -->
             <a href="${pageContext.request.contextPath}/NewsServlet" 
                class="nav-btn <%= "news".equals(activeTab) ? "btn-active" : "" %>">
                 <%= IconUtil.icon("Newspaper", "icon-sm") %>

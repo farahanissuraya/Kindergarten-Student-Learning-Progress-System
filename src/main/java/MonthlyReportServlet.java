@@ -127,7 +127,7 @@ public class MonthlyReportServlet extends HttpServlet {
 
         if (reportNote.isEmpty()) {
             reportNote = "Demonstrating consistent enthusiasm in daily literacy circle and counting challenges across " +
-                         Math.max(distinctWeeks.size(), 1) + " weekly evaluation(s).";
+                         Math.max(distinctWeeks.size(), 1) + "  evaluation(s).";
         }
 
         String verificationId = String.format("KED-%s-REP-%04d-%s",

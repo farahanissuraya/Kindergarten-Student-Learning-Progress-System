@@ -7,6 +7,9 @@
 <%@ page import="util.IconUtil"%>
 <%@ page import="java.sql.*"%>
 <%@ page import="java.util.*"%>
+<%@ page import="java.time.*"%>
+<%@ page import="java.time.format.DateTimeFormatter"%>
+<%@ page import="java.time.temporal.TemporalAdjusters"%>
 
 <%
     // 1. Semak Role & Maklumat Parent daripada Session
@@ -134,10 +137,63 @@
     for (LearningProgress lp : studentProgressList) {
         String dKey = (lp.getProgressDate() != null && !lp.getProgressDate().trim().isEmpty())
                       ? lp.getProgressDate().trim() : "Tanpa Tarikh";
+        if (dKey.length() > 10 && (dKey.charAt(10) == ' ' || dKey.charAt(10) == 'T')) {
+            dKey = dKey.substring(0, 10);
+        }
         groupedReports.computeIfAbsent(dKey, k -> new ArrayList<>()).add(lp);
     }
 
     List<String> allDates = new ArrayList<>(groupedReports.keySet());
+
+    // 4. Semak sama ada minggu semasa (Isnin - Ahad) sudah mempunyai rekod pentaksiran
+    String[] malayMonths = {"Januari", "Februari", "Mac", "April", "Mei", "Jun",
+                            "Julai", "Ogos", "September", "Oktober", "November", "Disember"};
+    String[] malayDays = {"", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu", "Ahad"};
+    DateTimeFormatter dmyFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    DateTimeFormatter[] supportedParsers = new DateTimeFormatter[] {
+        DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+        DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+        DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+        DateTimeFormatter.ofPattern("yyyy/MM/dd")
+    };
+
+    LocalDate today = LocalDate.now();
+    LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    LocalDate weekEnd   = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+
+    String weekRangeMalay = weekStart.getDayOfMonth() + " " + malayMonths[weekStart.getMonthValue() - 1] + " " + weekStart.getYear()
+                          + " – "
+                          + weekEnd.getDayOfMonth() + " " + malayMonths[weekEnd.getMonthValue() - 1] + " " + weekEnd.getYear();
+
+    String weeklyExistingDate = null;     // Nilai asal untuk parameter URL reportDate
+    String weeklyExistingDisplay = "";    // Format paparan Malaysia: dd-MM-yyyy
+    String weeklyExistingMalay = "";
+    String weeklyExistingDay = "";
+
+    for (String dStr : allDates) {
+        if (dStr == null) continue;
+        String cleanDate = dStr.trim();
+        if (cleanDate.length() > 10 && (cleanDate.charAt(10) == ' ' || cleanDate.charAt(10) == 'T')) {
+            cleanDate = cleanDate.substring(0, 10);
+        }
+
+        LocalDate parsed = null;
+        for (DateTimeFormatter fmt : supportedParsers) {
+            try {
+                parsed = LocalDate.parse(cleanDate, fmt);
+                break;
+            } catch (Exception ignored) {}
+        }
+
+        if (parsed != null && !parsed.isBefore(weekStart) && !parsed.isAfter(weekEnd)) {
+            weeklyExistingDate = cleanDate;
+            weeklyExistingDisplay = parsed.format(dmyFormatter);
+            weeklyExistingMalay = parsed.getDayOfMonth() + " " + malayMonths[parsed.getMonthValue() - 1] + " " + parsed.getYear();
+            weeklyExistingDay = malayDays[parsed.getDayOfWeek().getValue()];
+            break;
+        }
+    }
+    boolean hasWeeklyRecord = (weeklyExistingDate != null);
 %>
 
 <!DOCTYPE html>
@@ -147,13 +203,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learning Progress Manager - Keedsflix Centre</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/icons.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/learningProgress.css">
-
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/learningProgress.css?v=2">
 </head>
 <body>
 
 <div class="app-layout">
     <aside class="app-sidebar-wrapper">
+        <% request.setAttribute("activeTab", "progress"); %>
         <jsp:include page="sidebar.jsp" />
     </aside>
 
@@ -249,23 +305,19 @@
                             Tiada rekod pentaksiran ditemui dalam pangkalan data untuk <%= activeStudent.getStudentName() %>.
                         </div>
                     <% } else {
-                        String[] malayMonths = {"Januari", "Februari", "Mac", "April", "Mei", "Jun",
-                                                "Julai", "Ogos", "September", "Oktober", "November", "Disember"};
-
                         // 1. PAPARAN REKOD TERKINI (CURRENT RECORD - INDEKS 0)
                         String curDateKey = allDates.get(0);
                         List<LearningProgress> curRecords = groupedReports.get(curDateKey);
 
+                        String curDisplayDate = curDateKey;
                         String curMalayDate = curDateKey;
-                        if (curDateKey.contains("-")) {
-                            String[] p = curDateKey.split("-");
-                            if (p.length == 3) {
-                                try {
-                                    int m = Integer.parseInt(p[1]);
-                                    int d = Integer.parseInt(p[2]);
-                                    if (m >= 1 && m <= 12) curMalayDate = d + " " + malayMonths[m - 1] + " " + p[0];
-                                } catch (Exception ignored) {}
-                            }
+                        for (DateTimeFormatter fmt : supportedParsers) {
+                            try {
+                                LocalDate pDate = LocalDate.parse(curDateKey.trim(), fmt);
+                                curDisplayDate = pDate.format(dmyFormatter);
+                                curMalayDate = pDate.getDayOfMonth() + " " + malayMonths[pDate.getMonthValue() - 1] + " " + pDate.getYear();
+                                break;
+                            } catch (Exception ignored) {}
                         }
 
                         List<String> curTopics = new ArrayList<>();
@@ -288,7 +340,7 @@
                                     REKOD TERKINI (CURRENT RECORD)
                                 </span>
                                 <span class="nb-badge-mint" style="font-size: 10px;">
-                                    Tarikh Aktif: <%= curDateKey %>
+                                    Tarikh Aktif: <%= curDisplayDate %>
                                 </span>
                             </div>
 
@@ -303,7 +355,7 @@
                                 <tbody>
                                     <tr>
                                         <td style="vertical-align: top; text-align: center; border-bottom: none;">
-                                            <div style="font-weight: 900; font-size: 1rem; color: #2D3436;"><%= curDateKey %></div>
+                                            <div style="font-weight: 900; font-size: 1rem; color: #2D3436;"><%= curDisplayDate %></div>
                                             <div style="font-size: 0.78rem; font-weight: 700; color: #64748B; margin-top: 2px;"><%= curMalayDate %></div>
                                             <div style="margin-top: 8px;">
                                                 <span class="nb-badge-mint" style="font-size: 9px; padding: 2px 8px;">
@@ -352,14 +404,14 @@
 
                                                 <% if (isAdmin) { %>
                                                     <button type="button"
-                                                            class="nb-btn nb-btn-danger js-delete-btn"
-                                                            style="width: 100%; font-size: 0.78rem;"
-                                                            data-progress-id="<%= curTargetRec.getProgressID() %>"
-                                                            data-report-date="<%= curDateKey %>"
-                                                            data-student-name="<%= activeStudent.getStudentName().replace("\"", "&quot;") %>"
-                                                            data-summary="<%= curSummaryText.replace("\"", "&quot;") %>">
-                                                        <%= IconUtil.icon("Trash2", "icon-xs") %> Padam
-                                                    </button>
+													        class="nb-btn nb-btn-danger js-delete-btn"
+													        style="width: 100%; font-size: 0.78rem; padding: 6px 12px;"
+													        data-progress-id="<%= curTargetRec.getProgressID() %>"
+													        data-report-date="<%= curDateKey %>"
+													        data-student-name="<%= activeStudent.getStudentName().replace("\"", "&quot;") %>"
+													        data-summary="<%= curSummaryText.replace("\"", "&quot;") %>">
+													    <%= IconUtil.icon("Trash2", "icon-xs") %> Padam
+													</button>
                                                 <% } %>
                                             </div>
                                         </td>
@@ -395,16 +447,15 @@
                                             List<LearningProgress> dayRecords = groupedReports.get(dateKey);
                                             boolean isLastRow = (i == allDates.size() - 1);
 
+                                            String rowDisplayDate = dateKey;
                                             String malayDate = dateKey;
-                                            if (dateKey.contains("-")) {
-                                                String[] p = dateKey.split("-");
-                                                if (p.length == 3) {
-                                                    try {
-                                                        int m = Integer.parseInt(p[1]);
-                                                        int d = Integer.parseInt(p[2]);
-                                                        if (m >= 1 && m <= 12) malayDate = d + " " + malayMonths[m - 1] + " " + p[0];
-                                                    } catch (Exception ignored) {}
-                                                }
+                                            for (DateTimeFormatter fmt : supportedParsers) {
+                                                try {
+                                                    LocalDate pDate = LocalDate.parse(dateKey.trim(), fmt);
+                                                    rowDisplayDate = pDate.format(dmyFormatter);
+                                                    malayDate = pDate.getDayOfMonth() + " " + malayMonths[pDate.getMonthValue() - 1] + " " + pDate.getYear();
+                                                    break;
+                                                } catch (Exception ignored) {}
                                             }
 
                                             List<String> topicTitles = new ArrayList<>();
@@ -422,7 +473,7 @@
                                         %>
                                             <tr>
                                                 <td style="vertical-align: top; text-align: center; <%= isLastRow ? "border-bottom: none;" : "" %>">
-                                                    <div style="font-weight: 900; font-size: 1rem; color: #2D3436;"><%= dateKey %></div>
+                                                    <div style="font-weight: 900; font-size: 1rem; color: #2D3436;"><%= rowDisplayDate %></div>
                                                     <div style="font-size: 0.78rem; font-weight: 700; color: #64748B; margin-top: 2px;"><%= malayDate %></div>
                                                     <div style="margin-top: 8px;">
                                                         <span class="nb-badge-gray" style="font-size: 9px; padding: 2px 8px;">
@@ -471,14 +522,14 @@
 
                                                         <% if (isAdmin) { %>
                                                             <button type="button"
-                                                                    class="nb-btn nb-btn-danger js-delete-btn"
-                                                                    style="width: 100%; font-size: 0.78rem;"
-                                                                    data-progress-id="<%= rowTargetRec.getProgressID() %>"
-                                                                    data-report-date="<%= dateKey %>"
-                                                                    data-student-name="<%= activeStudent.getStudentName().replace("\"", "&quot;") %>"
-                                                                    data-summary="<%= rowSummaryText.replace("\"", "&quot;") %>">
-                                                                <%= IconUtil.icon("Trash2", "icon-xs") %> Padam
-                                                            </button>
+															        class="nb-btn nb-btn-danger js-delete-btn"
+															        style="width: 100%; font-size: 0.78rem; padding: 6px 12px;"
+															        data-progress-id="<%= curTargetRec.getProgressID() %>"
+															        data-report-date="<%= curDateKey %>"
+															        data-student-name="<%= activeStudent.getStudentName().replace("\"", "&quot;") %>"
+															        data-summary="<%= curSummaryText.replace("\"", "&quot;") %>">
+															    <%= IconUtil.icon("Trash2", "icon-xs") %> Padam
+															</button>
                                                         <% } %>
                                                     </div>
                                                 </td>
@@ -492,13 +543,28 @@
 
                     <!-- HANYA TEACHER boleh Create Progress -->
                     <% if (isTeacher) { %>
-                        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
-                            <a href="<%= request.getContextPath() %>/createProgress.jsp?studentId=<%= activeStudent.getStudentID() %>" 
-                               class="nb-btn nb-btn-yellow" 
-                               style="padding: 10px 24px; font-size: 0.9rem;">
-                                <%= IconUtil.icon("Plus", "icon-sm") %>
-                                <span>Create Progress</span>
-                            </a>
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 16px;">
+                            <% if (hasWeeklyRecord) { %>
+                                <div class="weekly-status-pill">
+                                    <%= IconUtil.icon("CalendarCheck", "icon-xs") %>
+                                    <span>Rekod minggu ini telah diisi (<%= weeklyExistingDisplay %>)</span>
+                                </div>
+
+                                <button type="button"
+                                        onclick="openWeeklyLimitModal()"
+                                        class="nb-btn nb-btn-yellow"
+                                        style="padding: 10px 24px; font-size: 0.9rem; opacity: 0.78;">
+                                    <%= IconUtil.icon("Plus", "icon-sm") %>
+                                    <span>Create Progress</span>
+                                </button>
+                            <% } else { %>
+                                <a href="<%= request.getContextPath() %>/createProgress.jsp?studentId=<%= activeStudent.getStudentID() %>" 
+                                   class="nb-btn nb-btn-yellow" 
+                                   style="padding: 10px 24px; font-size: 0.9rem;">
+                                    <%= IconUtil.icon("Plus", "icon-sm") %>
+                                    <span>Create Progress</span>
+                                </a>
+                            <% } %>
                         </div>
                     <% } %>
                 </div>
@@ -507,6 +573,62 @@
         </div>
     </main>
 </div>
+
+<!-- MODAL AMARAN HAD PENTAKSIRAN 1 KALI SEMINGGU (TEACHER) -->
+<% if (isTeacher && hasWeeklyRecord) { %>
+<div class="wk-modal-overlay" id="weeklyLimitModal">
+    <div class="wk-modal-card">
+        <div class="wk-modal-top">
+            <div class="wk-modal-title-wrap">
+                <div class="wk-warn-icon-box">
+                    <%= IconUtil.icon("AlertTriangle", "icon-md") %>
+                </div>
+                <div>
+                    <div class="wk-kicker">HAD PENTAKSIRAN: 1 KALI SEMINGGU</div>
+                    <h3 class="wk-heading">Rekod Minggu Ini Sudah Wujud</h3>
+                </div>
+            </div>
+
+            <button type="button" class="wk-close-btn" onclick="closeWeeklyLimitModal()" title="Tutup">
+                <%= IconUtil.icon("X", "icon-xs") %>
+            </button>
+        </div>
+
+        <p class="wk-desc">
+            Pentaksiran kemajuan murid ditetapkan hanya <strong>sekali setiap minggu</strong>. Murid <strong><%= activeStudent.getStudentName() %></strong> sudah mempunyai rekod pentaksiran bagi minggu semasa.
+        </p>
+
+        <div class="wk-info-box">
+            <div class="wk-info-row">
+                <span class="wk-info-lbl">Tarikh Rekod Sedia Ada</span>
+                <span class="wk-info-val"><%= weeklyExistingMalay %> (<%= weeklyExistingDay %>)</span>
+            </div>
+            <div class="wk-info-row">
+                <span class="wk-info-lbl">Tempoh Minggu Semasa</span>
+                <span class="wk-info-val"><%= weekRangeMalay %></span>
+            </div>
+        </div>
+
+        <p class="wk-sub-note">
+            Anda boleh menyemak laporan minggu ini atau mengemaskini rekod sedia ada tanpa mencipta rekod baharu pada minggu yang sama.
+        </p>
+
+        <div class="wk-actions">
+            <a href="<%= request.getContextPath() %>/reportDetail?studentId=<%= activeStudent.getStudentID() %>&reportDate=<%= weeklyExistingDate %>"
+               class="wk-btn-action wk-btn-white">
+                <%= IconUtil.icon("Eye", "icon-xs") %>
+                <span>Lihat Laporan</span>
+            </a>
+
+            <a href="<%= request.getContextPath() %>/createProgress.jsp?studentId=<%= activeStudent.getStudentID() %>&reportDate=<%= weeklyExistingDate %>"
+               class="wk-btn-action wk-btn-yellow">
+                <%= IconUtil.icon("Edit2", "icon-xs") %>
+                <span>Edit Rekod Minggu Ini</span>
+            </a>
+        </div>
+    </div>
+</div>
+<% } %>
 
 <!-- CUSTOM DELETE CONFIRMATION MODAL (ADMIN ONLY) -->
 <% if (isAdmin) { %>
@@ -525,7 +647,6 @@
                 </p>
             </div>
         </div>
-
 
         <form action="<%= request.getContextPath() %>/ProgressServlet" method="POST" style="margin: 0;">
             <input type="hidden" name="action" value="delete">
@@ -553,6 +674,20 @@
         if (wrapper && menu) {
             wrapper.classList.toggle('open');
             menu.classList.toggle('show');
+        }
+    }
+
+    function openWeeklyLimitModal() {
+        const modal = document.getElementById('weeklyLimitModal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+    }
+
+    function closeWeeklyLimitModal() {
+        const modal = document.getElementById('weeklyLimitModal');
+        if (modal) {
+            modal.classList.remove('show');
         }
     }
 
@@ -585,14 +720,21 @@
             return;
         }
 
-        // 2. Kesan klik pada butang Cancel atau kawasan luar kotak modal
+        // 2. Kesan klik di luar kotak modal amaran mingguan
+        const wkModalOverlay = document.getElementById('weeklyLimitModal');
+        if (event.target === wkModalOverlay) {
+            closeWeeklyLimitModal();
+            return;
+        }
+
+        // 3. Kesan klik pada butang Cancel atau kawasan luar kotak modal delete
         const modalOverlay = document.getElementById('deleteConfirmModal');
         if (event.target.closest('#btnCancelDelete') || event.target === modalOverlay) {
             closeDeleteModal();
             return;
         }
 
-        // 3. Tutup dropdown murid jika klik di luar banner
+        // 4. Tutup dropdown murid jika klik di luar banner
         if (!event.target.closest('#lpBannerWrapper')) {
             const wrapper = document.getElementById('lpBannerWrapper');
             const menu = document.getElementById('lpDropdownMenu');
@@ -604,6 +746,7 @@
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeDeleteModal();
+            closeWeeklyLimitModal();
         }
     });
 </script>

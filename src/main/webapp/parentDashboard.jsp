@@ -192,7 +192,7 @@
                         </div>
                     </div>
                     
-                    <!-- 4. Keedflix Centre News & Weekly Bulletins -->
+                    <!-- 4. Keedflix Centre News &  Bulletins -->
                     <div class="news-section">
                         
                         <!-- Header Berita -->
@@ -203,7 +203,7 @@
                                 </div>
                                 <div>
                                     <h2 class="news-title">
-                                        Keedflix Centre News &amp; Weekly Bulletins
+                                        Keedflix Centre News &amp;  Bulletins
                                     </h2>
                                     <p class="news-subtitle">Curriculum updates, reading &amp; counting activities, and upcoming centre events for families</p>
                                 </div>
@@ -225,7 +225,6 @@
                             <button type="button" class="filter-btn" onclick="filterNews('Announcement', this)">Announcement</button>
                             <button type="button" class="filter-btn" onclick="filterNews('Event', this)">Event</button>
                             <button type="button" class="filter-btn" onclick="filterNews('Holiday', this)">Holiday</button>
-                            <button type="button" class="filter-btn" onclick="filterNews('Nutrition', this)">Nutrition</button>
                         </div>
 
                         <!-- Grid Kad Berita -->

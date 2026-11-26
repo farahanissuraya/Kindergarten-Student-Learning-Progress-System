@@ -1,6 +1,6 @@
 # 🎓 Kindergarten Student Learning Progress System for Keedflix Centre
 
-> A web-based management and progress tracking system designed for **Keedflix Centre** to streamline student enrollment, track weekly learning progress, and facilitate parent-teacher interaction.
+> A web-based management and progress tracking system designed for **Keedflix Centre** to streamline student enrollment, track  learning progress, and facilitate parent-teacher interaction.
 
 
 ## 📌 Project Overview
@@ -34,7 +34,7 @@ The system database runs on **Oracle DBMS** and consists of 11 normalized tables
 3. **Student**: Student profiles, age, class assignments, and parent linkages.
 4. **Class**: Classroom details and academic year allocations.
 5. **Chat**: Communication logs between parents and teachers.
-6. **News**: Announcements and weekly news posts.
+6. **News**: Announcements and  news posts.
 7. **LearningProgress**: Achievement metrics, status logs, and percentages.
 8. **Learning**: Master categories for curriculum fields.
 9. **Reading**: Phonics status and reading level evaluations.

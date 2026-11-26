@@ -79,6 +79,7 @@
 
 <div class="app-layout">
     <aside class="app-sidebar-wrapper">
+    <% request.setAttribute("activeTab", "progress"); %>
         <jsp:include page="sidebar.jsp" />
     </aside>
 
